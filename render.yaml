@@ -4,12 +4,14 @@ services:
     runtime: node
     plan: free
     region: frankfurt
-    buildCommand: npm ci --prefix backend && npm ci --prefix frontend && npm run build --prefix frontend && rm -rf frontend/node_modules
+    buildCommand: cd frontend && npm ci && npm run build && cd ../backend && npm ci
     startCommand: npm run render-start --prefix backend
     healthCheckPath: /api/health
     envVars:
       - key: NODE_ENV
-        value: production
+        value: development
+      - key: NPM_CONFIG_PRODUCTION
+        value: "false"
       - key: DB_PATH
         value: /tmp/school.db
       - key: JWT_SECRET
