@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
+import { useAuth } from '../../components/AuthContext.jsx';
 import { api, money } from '../../api/client.js';
 
 const EMPTY_FORM = { first_name: '', last_name: '', birth_date: '', gender: 'M', class_id: '', father_name: '', mother_name: '', guardian_phone: '', guardian_phone_2: '' };
 
 export default function StaffStudents() {
+  const { user } = useAuth();
   const [students, setStudents] = useState(null);
   const [classes, setClasses] = useState([]);
   const [q, setQ] = useState('');
@@ -13,7 +15,7 @@ export default function StaffStudents() {
   const [msg, setMsg] = useState(null);
   const [error, setError] = useState('');
 
-  const canEdit = ['coordinator', 'admin'].includes(JSON.parse(atob(localStorage.getItem('sf_token').split('.')[1].replace(/-/g, '+').replace(/_/g, '/'))).role);
+  const canEdit = ['coordinator', 'admin'].includes(user?.role);
 
   const load = () => api('/students').then((d) => setStudents(d.students)).catch((e) => setError(e.message));
 
