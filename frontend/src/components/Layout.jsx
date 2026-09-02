@@ -1,4 +1,4 @@
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, Link, Outlet } from 'react-router-dom';
 import { useAuth } from './AuthContext.jsx';
 
 const ROLE_LABELS = {
@@ -55,7 +55,9 @@ export default function Layout({ children }) {
           </div>
         </div>
       </aside>
-      <main className="main">{children}</main>
+      <main className="main">
+        <Outlet />
+      </main>
     </div>
   );
 }
