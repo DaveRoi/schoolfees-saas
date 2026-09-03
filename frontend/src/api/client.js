@@ -1,5 +1,5 @@
-const TOKEN_KEY = 'sf_token';
-const REFRESH_KEY = 'sf_refresh';
+const TOKEN_KEY = 'edupay_token';
+const REFRESH_KEY = 'edupay_refresh';
 
 export function getToken() {
   return localStorage.getItem(TOKEN_KEY);

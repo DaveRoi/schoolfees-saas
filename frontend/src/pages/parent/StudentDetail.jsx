@@ -21,7 +21,7 @@ export default function StudentDetail() {
   if (!data) return <div className="center" style={{ padding: 60 }}><span className="spinner" /></div>;
 
   const { student, balance } = data;
-  const pct = Math.min(100, Math.round((balance.totalPaid / balance.totalDue) * 100));
+  const pct = balance.totalDue ? Math.min(100, Math.round((balance.totalPaid / balance.totalDue) * 100)) : 0;
 
   return (
     <>
@@ -82,7 +82,7 @@ export default function StudentDetail() {
                   <td data-label={t('parent.detail.status')}>
                     {reste <= 0 ? <span className="pill ok">{t('parent.detail.paidStatus')}</span> : late ? <span className="pill danger">{t('parent.detail.late')}</span> : <span className="pill warn">{t('parent.detail.toPay')}</span>}
                   </td>
-                  <td>
+                  <td data-label="→">
                     {reste > 0 && (
                       <Link className="btn primary sm" to={`/app/payer/${student.id}/${f.id}`}>
                         {t('parent.detail.pay')}

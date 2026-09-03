@@ -45,7 +45,7 @@ export default function MyPayments() {
                     {p.status === 'failed' && <span className="pill danger">{t('payments.statusFailed')}</span>}
                     {p.status === 'refunded' && <span className="pill info">{t('payments.statusRefunded')}</span>}
                   </td>
-                  <td>
+                  <td data-label={t('payments.receipt')}>
                     {p.status === 'success' && (
                       <button className="btn ghost sm" onClick={() => openProtectedFile(`/payments/${p.id}/receipt`)}>📄 PDF</button>
                     )}

@@ -39,8 +39,8 @@ export default function Profile() {
   const changePassword = async (e) => {
     e.preventDefault();
     setError(''); setMsg('');
-    if (pwd.new_password !== pwd.new_password2) return setError('✗');
-    if (pwd.new_password.length < 8) return setError('✗ 8');
+    if (pwd.new_password !== pwd.new_password2) return setError(t('common.errorMismatch'));
+    if (pwd.new_password.length < 8) return setError(t('common.errorLength'));
     try {
       const d = await api('/auth/change-password', { method: 'POST', body: pwd });
       setMsg(d.message);
@@ -125,7 +125,8 @@ export default function Profile() {
         ) : secret ? (
           <form onSubmit={confirmMfa}>
             <p className="mini" style={{ marginBottom: 10 }}>
-              1. Google Authenticator / FreeOTP<br />2. 🔑 :
+              1. Google Authenticator / FreeOTP → <b>{t('profile.mfaEnable')}</b><br />
+              2. 🔑 <b>{t('login.mfaCode')}</b> :
             </p>
             <div className="alert info" style={{ fontFamily: 'monospace', fontSize: 14, wordBreak: 'break-all' }}>{secret}</div>
             <div className="field mt">

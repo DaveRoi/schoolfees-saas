@@ -536,9 +536,10 @@ tbody tr:hover td { background: var(--bg-subtle); }
   .header-actions .year-badge { display: none; }
 }
 
-/* Menu mobile déroulant */
+/* Menu mobile déroulant (top auto : suit la hauteur réelle du header) */
 .mobile-menu {
-  position: fixed; top: 62px; left: 0; right: 0; z-index: 99;
+  position: sticky; top: 0; z-index: 99;
+  margin-top: -1px;
   background: var(--bg-surface); border-bottom: 1px solid var(--border-color);
   box-shadow: var(--shadow-lg);
   display: flex; flex-direction: column; padding: .8rem;
@@ -672,10 +673,10 @@ tbody tr:hover td { background: var(--bg-subtle); }
   .kpi-value { font-size: 1.18rem; }
   .btn { font-size: .84rem; }
   .page-title { font-size: 1.18rem; }
-  /* Grille 3 mini-KPI parent : reste 3 colonnes mais compact */
-  .grid.cols-3.compact { grid-template-columns: repeat(3, 1fr); gap: .5rem; }
-  .grid.cols-3.compact .card { padding: .6rem .5rem; }
-  .grid.cols-3.compact .kpi-value { font-size: .92rem; }
+  /* Mini-KPI parent : 1 colonne lisible plutôt que 3 écrasées */
+  .grid.cols-3.compact { grid-template-columns: 1fr; gap: .5rem; }
+  .grid.cols-3.compact .card { padding: .7rem .8rem; }
+  .grid.cols-3.compact .kpi-value { font-size: 1.05rem; }
 }
 
 /* --- Notch / safe-area iPhone & Android modernes --- */

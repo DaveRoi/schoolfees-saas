@@ -9,7 +9,10 @@ export function AuthProvider({ children }) {
     // Hydrate au premier rendu via /auth/me
     api('/auth/me')
       .then((d) => setUser(d.user))
-      .catch(() => clearSession());
+      .catch(() => {
+        clearSession();
+        setUser(null); // sinon spinner infini dans Protected
+      });
     return undefined; // undefined = chargement
   });
 

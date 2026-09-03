@@ -75,24 +75,27 @@ export default function Layout() {
         <div className="sub-bar-container">
           <div className="live-indicator">
             <span className="pulse-dot" />
-            <span className="long">Passerelles : <strong>MTN MoMo</strong> 🟢 · <strong>Orange Money</strong> 🟢 · <strong>WhatsApp</strong> 🟢</span>
+            <span className="long">{t('menu.gateways')}</span>
           </div>
           <div className="year-badge">{t('menu.services')}</div>
         </div>
       </div>
 
       {mobileOpen && (
-        <div className="mobile-menu" onClick={() => setMobileOpen(false)}>
-          {menu.map((m) => (
-            <NavLink key={m.to} to={m.to} className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
-              <span>{m.icon}</span> {m.label}
-            </NavLink>
-          ))}
-          <button className="lang-switch" onClick={(e) => { e.stopPropagation(); toggleLang(); }} style={{ marginTop: '.5rem', alignSelf: 'flex-start' }}>
-            {lang === 'fr' ? 'FR → EN' : 'EN → FR'}
-          </button>
-          <button className="nav-btn" onClick={doLogout}>🚪 {t('common.logout')}</button>
-        </div>
+        <>
+          {/* ferme le menu au clic sur un lien */}
+          <div className="mobile-menu" onClick={() => setMobileOpen(false)}>
+            {menu.map((m) => (
+              <NavLink key={m.to} to={m.to} className={({ isActive }) => `nav-btn ${isActive ? 'active' : ''}`}>
+                <span>{m.icon}</span> {m.label}
+              </NavLink>
+            ))}
+            <button className="lang-switch" onClick={(e) => { e.stopPropagation(); toggleLang(); }} style={{ marginTop: '.5rem', alignSelf: 'flex-start' }}>
+              {lang === 'fr' ? 'FR → EN' : 'EN → FR'}
+            </button>
+            <button className="nav-btn" onClick={doLogout}>🚪 {t('common.logout')}</button>
+          </div>
+        </>
       )}
 
       <main className="main-content">

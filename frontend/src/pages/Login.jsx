@@ -48,7 +48,7 @@ export default function Login() {
     try {
       const d = await api('/auth/password/forgot', { method: 'POST', body: { email: form.email } });
       setForgotMsg(d.demo_token
-        ? `${d.message} (démo : ${d.demo_token})`
+        ? `${d.message} ${t('login.demoToken')} ${d.demo_token})`
         : d.message);
     } catch (err) {
       setError(err.message);

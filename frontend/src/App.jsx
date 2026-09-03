@@ -63,6 +63,8 @@ export default function App() {
         <Route path="profil" element={<Profile />} />
         <Route path="*" element={<Navigate to="/app" replace />} />
       </Route>
+      {/* URL inconnue hors /app -> accueil */}
+      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   );
 }

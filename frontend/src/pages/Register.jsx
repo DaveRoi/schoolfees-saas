@@ -20,17 +20,17 @@ export default function Register() {
     if (!code || code.length < 4) return;
     try {
       const d = await api(`/schools/by-code/${encodeURIComponent(code)}`);
-      setSchoolName(d.school?.active ? `✓ ${d.school.name}` : '⚠ ' + d.school?.name);
+      setSchoolName(d.school?.active ? `✓ ${d.school.name}` : `⚠ ${d.school?.name}`);
     } catch {
-      setSchoolName('✗');
+      setSchoolName(t('register.badCode'));
     }
   };
 
   const submit = async (e) => {
     e.preventDefault();
     setError('');
-    if (form.password !== form.password2) return setError('✗');
-    if (form.password.length < 8) return setError('✗ 8');
+    if (form.password !== form.password2) return setError(t('common.errorMismatch'));
+    if (form.password.length < 8) return setError(t('common.errorLength'));
     setBusy(true);
     try {
       await api('/auth/register', {
@@ -73,8 +73,8 @@ export default function Register() {
               required
             />
             {schoolName && (
-              <span className="mini" style={{ color: schoolName.startsWith('✓') ? 'var(--success)' : 'var(--danger)' }}>
-                {schoolName === '✗' ? '✗' : schoolName}
+              <span className="mini" style={{ marginTop: 4, display: 'block', color: schoolName.startsWith('✓') ? 'var(--success)' : 'var(--danger)' }}>
+                {schoolName}
               </span>
             )}
           </div>
