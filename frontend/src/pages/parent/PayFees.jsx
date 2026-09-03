@@ -1,15 +1,17 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { api, money, openProtectedFile } from '../../api/client.js';
+import { useLang } from '../../i18n.jsx';
 
 export default function PayFees() {
   const { studentId, feeItemId } = useParams();
+  const { t } = useLang();
   const nav = useNavigate();
   const [data, setData] = useState(null);
   const [method, setMethod] = useState('mtn_momo');
   const [phone, setPhone] = useState('');
   const [amount, setAmount] = useState('');
-  const [step, setStep] = useState('form'); // form -> pending -> done/failed
+  const [step, setStep] = useState('form');
   const [payment, setPayment] = useState(null);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
@@ -34,8 +36,8 @@ export default function PayFees() {
   const start = async (e) => {
     e.preventDefault();
     setError('');
-    if (!amt || amt <= 0) return setError('Montant invalide.');
-    if (amt > reste) return setError(`Le montant dépasse le reste à payer (${money(reste)}).`);
+    if (!amt || amt <= 0) return setError(t('pay.invalidAmount'));
+    if (amt > reste) return setError(`${t('pay.exceeds')} (${money(reste)}).`);
     setBusy(true);
     try {
       const d = await api('/payments/initiate', {
@@ -59,10 +61,10 @@ export default function PayFees() {
       const d = await api(`/payments/${payment.id}/confirm`, { method: 'POST', body: {} });
       if (d.payment.status === 'success') {
         setStep('done');
-        setMessage('Paiement réussi ! SMS et WhatsApp envoyés, solde mis à jour.');
+        setMessage(d.message);
       } else {
         setStep('failed');
-        setMessage(d.message || 'Paiement refusé par l\'opérateur.');
+        setMessage(d.message || t('pay.failedTitle'));
       }
     } catch (err) {
       setError(err.message);
@@ -73,7 +75,7 @@ export default function PayFees() {
 
   return (
     <div style={{ maxWidth: 560, margin: '0 auto' }}>
-      <h1 className="page-title">Payer la pension</h1>
+      <h1 className="page-title">{t('pay.title')}</h1>
       <p className="page-sub">
         {data.student.first_name} {data.student.last_name} — {data.student.class_name} — {fee?.label}
       </p>
@@ -83,13 +85,13 @@ export default function PayFees() {
       {step === 'form' && (
         <div className="card">
           <div className="flex between" style={{ marginBottom: 4 }}>
-            <span className="mini">Reste à payer sur cette échéance</span>
+            <span className="mini">{t('pay.remainderOnFee')}</span>
             <b className="kpi-value highlight-orange" style={{ fontSize: '1.1rem' }}>{money(reste)}</b>
           </div>
           <div className="divider" />
 
           <div className="field">
-            <label>Choisissez votre moyen de paiement</label>
+            <label>{t('pay.chooseMethod')}</label>
             <div className="grid cols-2" style={{ gap: '.7rem' }}>
               <button
                 type="button"
@@ -98,8 +100,8 @@ export default function PayFees() {
                 onClick={() => setMethod('mtn_momo')}
               >
                 <span style={{ fontSize: '1.3rem' }}>🟡</span>
-                <b>MTN Mobile Money</b>
-                <span className="mini" style={{ opacity: .7 }}>USSD push direct</span>
+                <b>{t('pay.mtn')}</b>
+                <span className="mini" style={{ opacity: .7 }}>{t('pay.ussd')}</span>
               </button>
               <button
                 type="button"
@@ -108,27 +110,27 @@ export default function PayFees() {
                 onClick={() => setMethod('orange_money')}
               >
                 <span style={{ fontSize: '1.3rem' }}>🟠</span>
-                <b>Orange Money</b>
-                <span className="mini" style={{ opacity: .7 }}>Webpay / #150*50#</span>
+                <b>{t('pay.om')}</b>
+                <span className="mini" style={{ opacity: .7 }}>{t('pay.webpay')}</span>
               </button>
             </div>
           </div>
 
           <form onSubmit={start}>
             <div className="field">
-              <label>Numéro {method === 'mtn_momo' ? 'MTN' : 'Orange'} à débiter</label>
+              <label>{t('pay.number')}</label>
               <div className="input-with-icon">
                 <span className="input-icon">🇨🇲</span>
                 <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="6xx xxx xxx" pattern="6[0-9]{8}" required />
               </div>
             </div>
             <div className="field">
-              <label>Montant à payer (FCFA) — total ou partiel</label>
+              <label>{t('pay.amount')}</label>
               <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} min={100} max={reste} required />
-              <span className="form-hint">Astuce : vous pouvez payer en plusieurs fois.</span>
+              <span className="form-hint">{t('pay.tip')}</span>
             </div>
             <button className="btn emerald lg" disabled={busy}>
-              {busy ? <span className="spinner" style={{ borderColor: 'rgba(255,255,255,.4)', borderTopColor: '#fff' }} /> : `Payer ${money(amt)}`}
+              {busy ? <span className="spinner" style={{ borderColor: 'rgba(255,255,255,.4)', borderTopColor: '#fff' }} /> : `${t('pay.payBtn')} ${money(amt)}`}
             </button>
           </form>
         </div>
@@ -137,26 +139,26 @@ export default function PayFees() {
       {step === 'pending' && (
         <div className="card center">
           <div style={{ fontSize: 44 }}>📲</div>
-          <h2 style={{ margin: '10px 0' }}>Validez sur votre téléphone</h2>
-          <p style={{ color: 'var(--muted)', fontSize: 14.5, marginBottom: 18 }}>{message}</p>
-          <p className="mini">Réf. opérateur : <b>{payment?.providerRef}</b></p>
+          <h2 style={{ margin: '10px 0' }}>{t('pay.validateTitle')}</h2>
+          <p style={{ color: 'var(--text-muted)', fontSize: 14.5, marginBottom: 18 }}>{message}</p>
+          <p className="mini">{t('pay.operatorRef')} : <b>{payment?.providerRef}</b></p>
           <button className="btn primary lg" onClick={confirm} disabled={busy}>
-            {busy ? <span className="spinner" style={{ borderColor: 'rgba(255,255,255,.4)', borderTopColor: '#fff' }} /> : "J'ai validé le code sur mon téléphone"}
+            {busy ? <span className="spinner" style={{ borderColor: 'rgba(255,255,255,.4)', borderTopColor: '#fff' }} /> : t('pay.validateBtn')}
           </button>
-          <p className="mini mt">Simulation démo : cliquez simplement pour confirmer (95% de succès simulé).</p>
+          <p className="mini mt">{t('pay.demoNote')}</p>
         </div>
       )}
 
       {step === 'done' && (
         <div className="card center">
           <div style={{ fontSize: 48 }}>✅</div>
-          <h2 style={{ margin: '10px 0' }}>Paiement confirmé !</h2>
-          <p style={{ color: 'var(--muted)', marginBottom: 18 }}>{message}</p>
-          <div className="flex center wrap" style={{ justifyContent: 'center' }}>
+          <h2 style={{ margin: '10px 0' }}>{t('pay.successTitle')}</h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: 18 }}>{message}</p>
+          <div className="flex wrap" style={{ justifyContent: 'center' }}>
             <button className="btn primary" onClick={() => openProtectedFile(`/payments/${payment.id}/receipt`)}>
-              📄 Télécharger le reçu PDF
+              {t('pay.receipt')}
             </button>
-            <button className="btn ghost" onClick={() => nav(`/app/eleve/${studentId}`)}>Voir le solde mis à jour</button>
+            <button className="btn ghost" onClick={() => nav(`/app/eleve/${studentId}`)}>{t('pay.seeBalance')}</button>
           </div>
         </div>
       )}
@@ -164,11 +166,11 @@ export default function PayFees() {
       {step === 'failed' && (
         <div className="card center">
           <div style={{ fontSize: 48 }}>❌</div>
-          <h2 style={{ margin: '10px 0' }}>Paiement échoué</h2>
-          <p style={{ color: 'var(--muted)', marginBottom: 18 }}>{message}</p>
-          <div className="flex center wrap" style={{ justifyContent: 'center' }}>
-            <button className="btn primary" onClick={() => setStep('form')}>Réessayer</button>
-            <button className="btn ghost" onClick={() => nav(`/app/eleve/${studentId}`)}>Retour</button>
+          <h2 style={{ margin: '10px 0' }}>{t('pay.failedTitle')}</h2>
+          <p style={{ color: 'var(--text-muted)', marginBottom: 18 }}>{message}</p>
+          <div className="flex wrap" style={{ justifyContent: 'center' }}>
+            <button className="btn primary" onClick={() => setStep('form')}>{t('pay.retry')}</button>
+            <button className="btn ghost" onClick={() => nav(`/app/eleve/${studentId}`)}>{t('common.back')}</button>
           </div>
         </div>
       )}

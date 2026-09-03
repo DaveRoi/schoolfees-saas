@@ -3,6 +3,8 @@ import { createRoot } from 'react-dom/client';
 import { BrowserRouter } from 'react-router-dom';
 import App from './App.jsx';
 import { AuthProvider } from './components/AuthContext.jsx';
+import { ThemeProvider } from './components/ThemeContext.jsx';
+import { LanguageProvider } from './i18n.jsx';
 import './styles/global.css';
 
 /** Barrière d'erreur : au lieu d'une page blanche silencieuse,
@@ -40,11 +42,15 @@ class ErrorBoundary extends Component {
 createRoot(document.getElementById('root')).render(
   <StrictMode>
     <ErrorBoundary>
-      <BrowserRouter>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
-      </BrowserRouter>
+      <ThemeProvider>
+        <LanguageProvider>
+          <BrowserRouter>
+            <AuthProvider>
+              <App />
+            </AuthProvider>
+          </BrowserRouter>
+        </LanguageProvider>
+      </ThemeProvider>
     </ErrorBoundary>
   </StrictMode>
 );

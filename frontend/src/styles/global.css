@@ -124,6 +124,7 @@ input, select, textarea { font-family: inherit; }
   background: var(--bg-surface);
   border-bottom: 1px solid var(--border-color);
   backdrop-filter: var(--glass-blur);
+  padding-top: env(safe-area-inset-top);
 }
 .header-container {
   max-width: 1400px; margin: 0 auto;
@@ -545,6 +546,147 @@ tbody tr:hover td { background: var(--bg-subtle); }
 }
 @keyframes slideDown { from { transform: translateY(-8px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
 .mobile-menu .nav-btn { padding: .9rem 1rem; font-size: .95rem; justify-content: flex-start; }
+
+/* Sélecteur de langue (pill) */
+.lang-switch {
+  background: var(--bg-subtle); border: 1px solid var(--border-color);
+  padding: .45rem .8rem; border-radius: 99px;
+  font-size: .8rem; font-weight: 800; color: var(--text-main);
+  display: inline-flex; align-items: center; gap: .3rem;
+  transition: all .15s;
+}
+.lang-switch:hover { border-color: var(--primary); color: var(--primary); }
+
+/* ==========================================================================
+   RESPONSIVE MOBILE-FIRST — le téléphone est le 1er écran au Cameroun
+   ========================================================================== */
+
+/* --- Tablettes --- */
+@media (max-width: 1024px) {
+  .grid.cols-4 { grid-template-columns: repeat(2, 1fr); }
+  .grid.cols-3 { grid-template-columns: repeat(2, 1fr); }
+  .features-grid, .pricing-cards-grid { grid-template-columns: 1fr 1fr; }
+  .main-content { padding: 1.2rem 1rem 2.5rem; }
+}
+
+/* --- Mobile L (<= 768px) : burger, colonnes 1, header compact --- */
+@media (max-width: 768px) {
+  /* Padding général généreux : JAMAIS collé aux bords */
+  .main-content { padding: 1rem 1rem 2.5rem; }
+  .header-container { padding: .55rem .9rem; gap: .5rem; }
+  .header-actions { gap: .45rem; }
+  .header-actions .school-chip { display: none; }
+  .school-chip { display: none; }
+
+  /* Header : burger + logo + actions */
+  .portal-nav { display: none; }
+  .burger-btn { display: flex; }
+  .brand-logo .logo-title { font-size: 1rem; }
+  .logo-badge-icon { width: 34px; height: 34px; font-size: 1.15rem; border-radius: 10px; }
+
+  /* Sub-bar compacte */
+  .sub-bar-container { padding: .35rem .9rem; font-size: .7rem; }
+  .sub-bar-container .live-indicator span:not(.pulse-dot) { display: none; }
+  .sub-bar-container .live-indicator::after { content: '🟢 MTN · Orange · WhatsApp'; }
+
+  /* Une seule colonne partout */
+  .grid.cols-4, .grid.cols-3, .grid.cols-2, .features-grid, .pricing-cards-grid,
+  .two-doors-grid, .analytics-row { grid-template-columns: 1fr; }
+
+  /* Cartes : padding réduit mais confortable */
+  .card, .glass-card { padding: 1.05rem; border-radius: var(--radius-lg); }
+  .page-title { font-size: 1.28rem; }
+  .page-sub { font-size: .82rem; margin-bottom: 1.1rem; }
+
+  /* KPI : valeur plus grosse, lisible en plein soleil */
+  .kpi-value { font-size: 1.32rem; }
+  .kpi-icon-badge { width: 32px; height: 32px; font-size: .9rem; }
+  .kpi-header { gap: .4rem; }
+  .kpi-title { font-size: .74rem; }
+
+  /* Onglets fratrie : scroll horizontal, pas de wrap moche */
+  .children-tabs { display: flex; gap: .55rem; overflow-x: auto; padding-bottom: .35rem; -webkit-overflow-scrolling: touch; }
+  .children-tabs::-webkit-scrollbar { height: 4px; }
+  .children-tabs .btn { min-width: 130px; flex-shrink: 0; }
+
+  /* Landing hero */
+  .landing-hero-center { margin: 1.4rem 0; padding: 0 .5rem; }
+  .landing-main-title { font-size: 1.65rem; }
+  .landing-subtitle { font-size: .9rem; }
+  .door-card { padding: 1.2rem; gap: .9rem; }
+  .door-header { flex-direction: row; }
+  .trust-ribbon { gap: .5rem; padding: .9rem .5rem; }
+  .trust-chip { font-size: .7rem; padding: .35rem .7rem; }
+  .pricing-section { padding: 1.5rem 0 2rem; }
+  .pricing-card { padding: 1.2rem; }
+  .pricing-price { font-size: 1.5rem; }
+
+  /* Auth (login/register) */
+  .auth-card { padding: 1.5rem 1.25rem; border-radius: var(--radius-lg); }
+  .auth-wrap { padding: 14px; }
+
+  /* Tables -> CARTES empilées (pattern "responsive table") */
+  .responsive-table thead { display: none; }
+  .responsive-table tbody, .responsive-table tr, .responsive-table td { display: block; width: 100%; }
+  .responsive-table tr {
+    background: var(--bg-subtle);
+    border-radius: var(--radius-md);
+    padding: .8rem;
+    margin-bottom: .7rem;
+    border: 1px solid var(--border-color);
+  }
+  .responsive-table td { border: none; padding: .3rem .1rem; }
+  .responsive-table td::before {
+    content: attr(data-label);
+    display: block;
+    font-size: .68rem; font-weight: 800; color: var(--text-subtle);
+    text-transform: uppercase; letter-spacing: .5px;
+    margin-bottom: .1rem;
+  }
+
+  /* Recherche pleine largeur */
+  .search-box, .table-filters-bar { width: 100%; flex-direction: column; }
+  .search-box input, .select-filter { width: 100%; }
+
+  /* Boutons : zones tactiles confortables (min 44px) */
+  .btn { min-height: 44px; padding: .65rem 1rem; font-size: .86rem; }
+  .btn.sm { min-height: 34px; }
+
+  /* Vérificateur */
+  .verify-wrap { margin: 1.2rem auto; padding: 0 .6rem; }
+  .verify-input-group { flex-direction: column; padding: 0 .4rem; }
+  .shield-hero { font-size: 2.4rem; }
+
+  /* Footer pricing sur mobile */
+  .modal-footer-actions { flex-direction: column; }
+}
+
+/* --- Mobile M (<= 480px) : très petits écrans --- */
+@media (max-width: 480px) {
+  .main-content { padding: .9rem .8rem 2rem; }
+  .header-container { padding: .5rem .7rem; }
+  .brand-logo .logo-title { font-size: .92rem; }
+  .logo-badge-edu { font-size: .55rem; }
+  .card, .glass-card { padding: .95rem; }
+  .landing-main-title { font-size: 1.42rem; }
+  .kpi-value { font-size: 1.18rem; }
+  .btn { font-size: .84rem; }
+  .page-title { font-size: 1.18rem; }
+  /* Grille 3 mini-KPI parent : reste 3 colonnes mais compact */
+  .grid.cols-3.compact { grid-template-columns: repeat(3, 1fr); gap: .5rem; }
+  .grid.cols-3.compact .card { padding: .6rem .5rem; }
+  .grid.cols-3.compact .kpi-value { font-size: .92rem; }
+}
+
+/* --- Notch / safe-area iPhone & Android modernes --- */
+@supports (padding: max(0px)) {
+  .app-header { padding-left: max(0px, env(safe-area-inset-left)); padding-right: max(0px, env(safe-area-inset-right)); }
+  .main-content { padding-left: max(.8rem, env(safe-area-inset-left)); padding-right: max(.8rem, env(safe-area-inset-right)); }
+}
+
+/* Empêche le débordement horizontal global */
+body, #root { overflow-x: clip; }
+img, svg, video { max-width: 100%; height: auto; }
 
 /* ---------- Print (reçus) ---------- */
 @media print {

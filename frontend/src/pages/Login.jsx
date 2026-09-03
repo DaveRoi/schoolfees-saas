@@ -2,16 +2,20 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { api } from '../api/client.js';
 import { useAuth } from '../components/AuthContext.jsx';
+import { useTheme } from '../components/ThemeContext.jsx';
+import { useLang } from '../i18n.jsx';
 
 export default function Login() {
   const { login, loginMfa } = useAuth();
+  const { dark, toggle } = useTheme();
+  const { t } = useLang();
   const nav = useNavigate();
   const [form, setForm] = useState({ email: '', password: '' });
-  const [mfaStep, setMfaStep] = useState(null); // { mfa_token }
+  const [mfaStep, setMfaStep] = useState(null);
   const [code, setCode] = useState('');
   const [error, setError] = useState('');
   const [busy, setBusy] = useState(false);
-  const [forgot, setForgot] = useState(false); // mode "mot de passe oublié"
+  const [forgot, setForgot] = useState(false);
   const [forgotMsg, setForgotMsg] = useState('');
   const [resetCode, setResetCode] = useState('');
   const [newPwd, setNewPwd] = useState('');
@@ -44,8 +48,8 @@ export default function Login() {
     try {
       const d = await api('/auth/password/forgot', { method: 'POST', body: { email: form.email } });
       setForgotMsg(d.demo_token
-        ? `Code envoyé (mode démo : ${d.demo_token}). Saisissez-le ci-dessous avec votre nouveau mot de passe.`
-        : 'Code envoyé sur votre téléphone. Saisissez-le ci-dessous avec votre nouveau mot de passe.');
+        ? `${d.message} (démo : ${d.demo_token})`
+        : d.message);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -70,35 +74,34 @@ export default function Login() {
   return (
     <div className="auth-wrap">
       <div className="auth-card">
-        <div className="brand-line"><span style={{ fontSize: '1.2rem' }}>🎓</span> EduPay Cameroun</div>
-        <h1>{mfaStep ? 'Vérification en 2 étapes' : forgot ? 'Mot de passe oublié' : 'Content de vous revoir'}</h1>
+        <div className="flex between" style={{ marginBottom: '.5rem' }}>
+          <div className="brand-line">🎓 EduPay Cameroun</div>
+          <button className="theme-toggle" onClick={toggle} title="Light / Dark">{dark ? '☀️' : '🌙'}</button>
+        </div>
+        <h1>{mfaStep ? t('login.mfaTitle') : forgot ? t('login.forgotTitle') : t('login.welcome')}</h1>
         <p className="sub">
-          {mfaStep
-            ? 'Saisissez le code à 6 chiffres de votre application d\'authentification.'
-            : forgot
-              ? 'Nous enverrons un code de réinitialisation sur votre téléphone.'
-              : 'Connectez-vous pour gérer les pensions scolaires.'}
+          {mfaStep ? t('login.mfaDesc') : forgot ? t('login.forgotDesc') : t('login.subtitle')}
         </p>
 
         {error && <div className="alert error">{error}</div>}
         {resetDone && (
-          <div className="alert success" style={{ background: '#f0fdf4', border: '1px solid #16a34a', color: '#166534', padding: 12, borderRadius: 10 }}>
-            Mot de passe modifié. <Link to="/login" onClick={() => { setForgot(false); setResetDone(false); }}>Connectez-vous</Link>.
+          <div className="alert ok">
+            {t('login.resetDone')} <Link to="/login" onClick={() => { setForgot(false); setResetDone(false); }}>{t('login.submit')}</Link>.
           </div>
         )}
 
-        {!forgot && !mfaStep && (
+        {!forgot && !mfaStep && !resetDone && (
           <form onSubmit={submit}>
             <div className="field">
-              <label>Email</label>
-              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="vous@exemple.cm" required autoFocus />
+              <label>{t('login.email')}</label>
+              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required autoFocus />
             </div>
             <div className="field">
-              <label>Mot de passe</label>
-              <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="••••••••" required />
+              <label>{t('login.password')}</label>
+              <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} required />
             </div>
             <button className="btn primary lg" disabled={busy}>
-              {busy ? <span className="spinner" style={{ borderColor: 'rgba(255,255,255,.4)', borderTopColor: '#fff' }} /> : 'Se connecter'}
+              {busy ? <span className="spinner" /> : t('login.submit')}
             </button>
           </form>
         )}
@@ -106,20 +109,19 @@ export default function Login() {
         {mfaStep && (
           <form onSubmit={submit}>
             <div className="field">
-              <label>Code MFA (6 chiffres)</label>
+              <label>{t('login.mfaCode')}</label>
               <input
                 inputMode="numeric"
                 maxLength={6}
                 value={code}
                 onChange={(e) => setCode(e.target.value.replace(/\D/g, ''))}
-                placeholder="123456"
                 style={{ fontSize: 22, textAlign: 'center', letterSpacing: 8 }}
                 autoFocus
                 required
               />
             </div>
             <button className="btn primary lg" disabled={busy}>
-              {busy ? <span className="spinner" style={{ borderColor: 'rgba(255,255,255,.4)', borderTopColor: '#fff' }} /> : 'Vérifier le code'}
+              {busy ? <span className="spinner" /> : t('login.mfaVerify')}
             </button>
           </form>
         )}
@@ -127,11 +129,11 @@ export default function Login() {
         {forgot && !resetDone && !forgotMsg && (
           <form onSubmit={requestReset}>
             <div className="field">
-              <label>Email du compte</label>
-              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="vous@exemple.cm" required autoFocus />
+              <label>{t('login.email')}</label>
+              <input type="email" value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} required autoFocus />
             </div>
             <button className="btn primary lg" disabled={busy}>
-              {busy ? <span className="spinner" /> : 'Envoyer le code'}
+              {busy ? <span className="spinner" /> : t('login.forgotSend')}
             </button>
           </form>
         )}
@@ -140,15 +142,15 @@ export default function Login() {
           <form onSubmit={doReset}>
             <p className="mini" style={{ marginBottom: 12 }}>{forgotMsg}</p>
             <div className="field">
-              <label>Code reçu (SMS)</label>
-              <input value={resetCode} onChange={(e) => setResetCode(e.target.value.toUpperCase())} placeholder="ABC123" required autoFocus />
+              <label>{t('login.resetCode')}</label>
+              <input value={resetCode} onChange={(e) => setResetCode(e.target.value.toUpperCase())} required autoFocus />
             </div>
             <div className="field">
-              <label>Nouveau mot de passe (8 caractères min.)</label>
+              <label>{t('login.newPassword')}</label>
               <input type="password" value={newPwd} onChange={(e) => setNewPwd(e.target.value)} minLength={8} required />
             </div>
             <button className="btn primary lg" disabled={busy}>
-              {busy ? <span className="spinner" /> : 'Définir le nouveau mot de passe'}
+              {busy ? <span className="spinner" /> : t('login.resetSubmit')}
             </button>
           </form>
         )}
@@ -156,22 +158,20 @@ export default function Login() {
         <p className="switch">
           {!forgot && !mfaStep ? (
             <>
-              Pas encore de compte parent ? <Link to="/register">Créer un compte</Link>
+              {t('login.noAccount')} <Link to="/register">{t('login.createAccount')}</Link>
               <br />
-              <button type="button" className="linklike" style={{ background: 'none', border: 'none', color: 'var(--brand)', cursor: 'pointer', padding: 0, fontSize: 13 }} onClick={() => { setForgot(true); setError(''); }}>
-                Mot de passe oublié ?
+              <button type="button" style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: 0, fontSize: 13 }} onClick={() => { setForgot(true); setError(''); }}>
+                {t('login.forgot')}
               </button>
             </>
           ) : (
-            <button type="button" className="linklike" style={{ background: 'none', border: 'none', color: 'var(--brand)', cursor: 'pointer', padding: 0, fontSize: 13 }} onClick={() => { setForgot(false); setMfaStep(null); setForgotMsg(''); setResetDone(false); setError(''); }}>
-              ← Retour à la connexion
+            <button type="button" style={{ background: 'none', border: 'none', color: 'var(--primary)', cursor: 'pointer', padding: 0, fontSize: 13 }} onClick={() => { setForgot(false); setMfaStep(null); setForgotMsg(''); setResetDone(false); setError(''); }}>
+              {t('login.backToLogin')}
             </button>
           )}
         </p>
         <div className="divider" />
-        <p className="mini center">
-          Comptes démo (mdp : <b>Password123</b>) — parent1@parent.cm · directrice@school.cm · coord@school.cm · admin@school.cm — Code école : <b>DEMO2025</b>
-        </p>
+        <p className="mini center">{t('login.demo')}</p>
       </div>
     </div>
   );

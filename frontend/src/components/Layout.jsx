@@ -1,57 +1,46 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { NavLink, Link, Outlet, useNavigate } from 'react-router-dom';
 import { useAuth } from './AuthContext.jsx';
+import { useTheme } from './ThemeContext.jsx';
+import { useLang } from '../i18n.jsx';
 
-const ROLE_LABELS = {
-  admin: 'Administrateur',
-  coordinator: 'Coordinatrice',
-  director: 'Directrice',
-  parent: 'Parent',
-};
-
-/** Menu selon le rôle connecté (préfixé /app). */
-function menuFor(role) {
+/** Menu selon le rôle connecté. */
+function menuFor(role, t) {
   if (role === 'parent')
     return [
-      { to: '/app/mes-enfants', label: 'Mes enfants', icon: '👨‍👩‍👧' },
-      { to: '/app/mes-paiements', label: 'Mes paiements', icon: '🧾' },
-      { to: '/app/profil', label: 'Mon profil', icon: '⚙️' },
+      { to: '/app/mes-enfants', label: t('menu.myChildren'), icon: '👨‍👩‍👧' },
+      { to: '/app/mes-paiements', label: t('menu.myPayments'), icon: '🧾' },
+      { to: '/app/profil', label: t('menu.profile'), icon: '⚙️' },
     ];
   const items = [
-    { to: '/app/dashboard', label: 'Tableau de bord', icon: '📊' },
-    { to: '/app/eleves', label: 'Élèves', icon: '🎓' },
-    { to: '/app/paiements', label: 'Paiements', icon: '💳' },
-    { to: '/app/rapports', label: 'Rapports', icon: '📁' },
+    { to: '/app/dashboard', label: t('menu.dashboard'), icon: '📊' },
+    { to: '/app/eleves', label: t('menu.students'), icon: '🎓' },
+    { to: '/app/paiements', label: t('menu.payments'), icon: '💳' },
+    { to: '/app/rapports', label: t('menu.reports'), icon: '📁' },
   ];
   if (role === 'admin') {
-    items.push({ to: '/app/admin/utilisateurs', label: 'Utilisateurs', icon: '👥' });
-    items.push({ to: '/app/admin/classes', label: 'Classes & frais', icon: '🏫' });
+    items.push({ to: '/app/admin/utilisateurs', label: t('menu.users'), icon: '👥' });
+    items.push({ to: '/app/admin/classes', label: t('menu.classes'), icon: '🏫' });
   }
-  items.push({ to: '/app/profil', label: 'Mon profil', icon: '⚙️' });
+  items.push({ to: '/app/profil', label: t('menu.profile'), icon: '⚙️' });
   return items;
 }
 
 export default function Layout() {
   const { user, logout } = useAuth();
+  const { dark, toggle } = useTheme();
+  const { lang, toggle: toggleLang, t } = useLang();
   const nav = useNavigate();
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [dark, setDark] = useState(() => localStorage.getItem('edupay-theme') === 'dark');
 
-  useEffect(() => {
-    document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-    localStorage.setItem('edupay-theme', dark ? 'dark' : 'light');
-  }, [dark]);
-
-  const toggleTheme = () => setDark((d) => !d);
   const doLogout = async () => { await logout(); nav('/login'); };
-
-  const menu = menuFor(user?.role);
+  const menu = menuFor(user?.role, t);
 
   return (
     <div className="app">
       <header className="app-header">
         <div className="header-container">
-          <div className="flex" style={{ gap: '1rem', alignItems: 'center' }}>
+          <div className="flex" style={{ gap: '.8rem', alignItems: 'center' }}>
             <button className="burger-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">☰</button>
             <Link to="/app" className="brand-logo">
               <div className="logo-badge-icon">🎓</div>
@@ -61,7 +50,6 @@ export default function Layout() {
               <div className="school-chip">
                 <span>🏛️</span>
                 <span className="chip-name">{user.school.name}</span>
-                {user.school.city && <span>· {user.school.city}</span>}
               </div>
             )}
           </div>
@@ -75,11 +63,10 @@ export default function Layout() {
           </nav>
 
           <div className="header-actions">
-            <div className="school-chip" style={{ padding: '.35rem .7rem' }}>
-              <b>{user?.full_name?.split(' ')[0]}</b> · {ROLE_LABELS[user?.role] || ''}
-            </div>
-            <button className="theme-toggle" onClick={toggleTheme} title="Mode clair / sombre">{dark ? '☀️' : '🌙'}</button>
-            <button className="btn ghost sm" onClick={doLogout}>Déconnexion</button>
+            <button className="lang-switch" onClick={toggleLang} title="FR / EN">
+              <b>{lang === 'fr' ? 'FR' : 'EN'}</b>
+            </button>
+            <button className="theme-toggle" onClick={toggle} title="Light / Dark">{dark ? '☀️' : '🌙'}</button>
           </div>
         </div>
       </header>
@@ -89,9 +76,8 @@ export default function Layout() {
           <div className="live-indicator">
             <span className="pulse-dot" />
             <span className="long">Passerelles : <strong>MTN MoMo</strong> 🟢 · <strong>Orange Money</strong> 🟢 · <strong>WhatsApp</strong> 🟢</span>
-            <span>🟢 Services actifs</span>
           </div>
-          <div className="year-badge">📅 Paiements sécurisés · Reçus certifiés</div>
+          <div className="year-badge">{t('menu.services')}</div>
         </div>
       </div>
 
@@ -102,7 +88,10 @@ export default function Layout() {
               <span>{m.icon}</span> {m.label}
             </NavLink>
           ))}
-          <button className="nav-btn" onClick={doLogout}>🚪 Se déconnecter</button>
+          <button className="lang-switch" onClick={(e) => { e.stopPropagation(); toggleLang(); }} style={{ marginTop: '.5rem', alignSelf: 'flex-start' }}>
+            {lang === 'fr' ? 'FR → EN' : 'EN → FR'}
+          </button>
+          <button className="nav-btn" onClick={doLogout}>🚪 {t('common.logout')}</button>
         </div>
       )}
 

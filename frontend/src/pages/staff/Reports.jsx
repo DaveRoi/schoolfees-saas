@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { api, dt, openProtectedFile } from '../../api/client.js';
+import { useLang } from '../../i18n.jsx';
 
 export default function StaffReports() {
+  const { t } = useLang();
   const [notifs, setNotifs] = useState(null);
   const [audit, setAudit] = useState(null);
   const [tab, setTab] = useState('exports');
@@ -24,33 +26,38 @@ export default function StaffReports() {
 
   return (
     <>
-      <h1 className="page-title">Rapports & exports</h1>
-      <p className="page-sub">Clôture mensuelle, journal des notifications et rapports d'audit.</p>
+      <h1 className="page-title">{t('reports.title')}</h1>
+      <p className="page-sub">{t('reports.sub')}</p>
 
       <div className="flex wrap" style={{ marginBottom: 18 }}>
-        <button className={`btn ${tab === 'exports' ? 'primary' : 'ghost'}`} onClick={() => setTab('exports')}>📥 Exports</button>
-        <button className={`btn ${tab === 'notifs' ? 'primary' : 'ghost'}`} onClick={() => setTab('notifs')}>🔔 Notifications ({notifs?.length || 0})</button>
-        {canAudit && <button className={`btn ${tab === 'audit' ? 'primary' : 'ghost'}`} onClick={loadAudit}>🛡️ Audit</button>}
+        <button className={`btn ${tab === 'exports' ? 'primary' : 'ghost'}`} onClick={() => setTab('exports')}>{t('reports.exports')}</button>
+        <button className={`btn ${tab === 'notifs' ? 'primary' : 'ghost'}`} onClick={() => setTab('notifs')}>{t('reports.notifs')} ({notifs?.length || 0})</button>
+        {canAudit && <button className={`btn ${tab === 'audit' ? 'primary' : 'ghost'}`} onClick={loadAudit}>{t('reports.audit')}</button>}
       </div>
 
       {tab === 'exports' && (
         <div className="grid cols-2">
           <div className="card">
-            <h3 style={{ fontSize: 16, marginBottom: 12 }}>Encaissements (CSV)</h3>
-            <p className="mini" style={{ marginBottom: 14 }}>Export complet avec élèves, classes, parents, montants et références opérateur.</p>
+            <h3 style={{ fontSize: 16, marginBottom: 12 }}>{t('reports.csvTitle')}</h3>
+            <p className="mini" style={{ marginBottom: 14 }}>{t('reports.csvDesc')}</p>
             <button className="btn primary" onClick={() => openProtectedFile('/reports/export/payments.csv')}>
-              ⬇️ Télécharger le CSV
+              {t('reports.csvBtn')}
             </button>
           </div>
           <div className="card">
-            <h3 style={{ fontSize: 16, marginBottom: 12 }}>Clôture mensuelle (PDF)</h3>
+            <h3 style={{ fontSize: 16, marginBottom: 12 }}>{t('reports.pdfTitle')}</h3>
             <div className="field">
-              <label>Mois de clôture</label>
+              <label>{t('reports.month')}</label>
               <input type="month" value={month} onChange={(e) => setMonth(e.target.value)} />
             </div>
-            <button className="btn primary" onClick={() => openProtectedFile(`/reports/export/monthly.pdf?month=${month}`)}>
-              ⬇️ Télécharger le PDF
-            </button>
+            <div style={{ display: 'flex', gap: '.6rem', flexWrap: 'wrap' }}>
+              <button className="btn primary" onClick={() => openProtectedFile(`/reports/export/monthly.pdf?month=${month}`)}>
+                {t('reports.pdfBtn')}
+              </button>
+              <button className="btn danger" onClick={() => openProtectedFile('/reports/export/unpaid.pdf')}>
+                {t('reports.unpaidBtn')}
+              </button>
+            </div>
           </div>
         </div>
       )}
@@ -58,15 +65,15 @@ export default function StaffReports() {
       {tab === 'notifs' && (
         <div className="card table-wrap">
           {!notifs ? <div className="center"><span className="spinner" /></div> : (
-            <table>
-              <thead><tr><th>Envoyé le</th><th>Canal</th><th>Destinataire</th><th>Message</th></tr></thead>
+            <table className="responsive-table">
+              <thead><tr><th>{t('reports.sentAt')}</th><th>{t('reports.channel')}</th><th>{t('reports.recipient')}</th><th>{t('reports.message')}</th></tr></thead>
               <tbody>
                 {notifs.map((n) => (
                   <tr key={n.id}>
-                    <td className="mini">{dt(n.created_at)}</td>
-                    <td><span className={`pill ${n.channel === 'sms' ? 'info' : 'ok'}`}>{n.channel === 'sms' ? 'SMS' : 'WhatsApp'}</span></td>
-                    <td>{n.recipient_name}<div className="mini">{n.recipient_phone}</div></td>
-                    <td className="mini" style={{ maxWidth: 420 }}>{n.message}</td>
+                    <td data-label={t('reports.sentAt')}><span className="mini">{dt(n.created_at)}</span></td>
+                    <td data-label={t('reports.channel')}><span className={`pill ${n.channel === 'sms' ? 'info' : 'ok'}`}>{n.channel === 'sms' ? 'SMS' : 'WhatsApp'}</span></td>
+                    <td data-label={t('reports.recipient')}>{n.recipient_name}<div className="mini">{n.recipient_phone}</div></td>
+                    <td data-label={t('reports.message')}><span className="mini" style={{ maxWidth: 420, display: 'block' }}>{n.message}</span></td>
                   </tr>
                 ))}
               </tbody>
@@ -78,17 +85,16 @@ export default function StaffReports() {
       {tab === 'audit' && (
         <div className="card table-wrap">
           {!audit ? <div className="center"><span className="spinner" /></div> : (
-            <table>
-              <thead><tr><th>Quand</th><th>Utilisateur</th><th>Action</th><th>Entité</th><th>Détails</th><th>IP</th></tr></thead>
+            <table className="responsive-table">
+              <thead><tr><th>{t('reports.when')}</th><th>{t('reports.user')}</th><th>{t('reports.action')}</th><th>{t('reports.details')}</th><th>IP</th></tr></thead>
               <tbody>
                 {audit.map((l) => (
                   <tr key={l.id}>
-                    <td className="mini">{dt(l.created_at)}</td>
-                    <td>{l.user_name || '—'}</td>
-                    <td><b>{l.action}</b></td>
-                    <td className="mini">{l.entity_type} {l.entity_id ? `#${l.entity_id}` : ''}</td>
-                    <td className="mini" style={{ maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.details || '—'}</td>
-                    <td className="mini">{l.ip || '—'}</td>
+                    <td data-label={t('reports.when')}><span className="mini">{dt(l.created_at)}</span></td>
+                    <td data-label={t('reports.user')}>{l.user_name || '—'}</td>
+                    <td data-label={t('reports.action')}><b>{l.action}</b></td>
+                    <td data-label={t('reports.details')}><span className="mini" style={{ display: 'block', maxWidth: 260, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{l.details || '—'}</span></td>
+                    <td><span className="mini">{l.ip || '—'}</span></td>
                   </tr>
                 ))}
               </tbody>

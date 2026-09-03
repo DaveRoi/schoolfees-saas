@@ -1,9 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { api, money, dt } from '../../api/client.js';
+import { useLang } from '../../i18n.jsx';
 
 export default function StudentDetail() {
   const { id } = useParams();
+  const { t } = useLang();
   const [data, setData] = useState(null);
   const [error, setError] = useState('');
 
@@ -11,8 +13,8 @@ export default function StudentDetail() {
 
   useEffect(() => {
     load();
-    const t = setInterval(load, 15000); // temps réel
-    return () => clearInterval(t);
+    const timer = setInterval(load, 15000);
+    return () => clearInterval(timer);
   }, [id]);
 
   if (error) return <div className="alert error">{error}</div>;
@@ -26,29 +28,31 @@ export default function StudentDetail() {
       <div className="flex between wrap">
         <div>
           <h1 className="page-title">{student.first_name} {student.last_name}</h1>
-          <p className="page-sub">{student.class_name} — {student.gender === 'M' ? 'Garçon' : 'Fille'} — né(e) le {student.birth_date || '—'}</p>
+          <p className="page-sub">
+            {student.class_name} — {student.gender === 'M' ? t('parent.detail.boy') : t('parent.detail.girl')} — {t('parent.detail.born')} {student.birth_date || '—'}
+          </p>
         </div>
-        <Link to="/app/mes-enfants" className="btn ghost">← Mes enfants</Link>
+        <Link to="/app/mes-enfants" className="btn ghost">← {t('parent.childrenTitle')}</Link>
       </div>
 
       <div className="grid cols-3">
         <div className="card kpi-card">
-          <div className="kpi-header"><span className="kpi-title">Total attendu</span><span className="kpi-icon-badge bg-blue">💰</span></div>
+          <div className="kpi-header"><span className="kpi-title">{t('parent.detail.expected')}</span><span className="kpi-icon-badge bg-blue">💰</span></div>
           <span className="kpi-value">{money(balance.totalDue)}</span>
         </div>
         <div className="card kpi-card">
-          <div className="kpi-header"><span className="kpi-title">Déjà payé</span><span className="kpi-icon-badge bg-green">✅</span></div>
+          <div className="kpi-header"><span className="kpi-title">{t('parent.totalPaid')}</span><span className="kpi-icon-badge bg-green">✅</span></div>
           <span className="kpi-value highlight-green">{money(balance.totalPaid)}</span>
         </div>
         <div className="card kpi-card">
-          <div className="kpi-header"><span className="kpi-title">Reste à payer</span><span className={`kpi-icon-badge ${balance.balance > 0 ? 'bg-orange' : 'bg-green'}`}>{balance.balance > 0 ? '⏳' : '🎉'}</span></div>
+          <div className="kpi-header"><span className="kpi-title">{t('parent.balance')}</span><span className={`kpi-icon-badge ${balance.balance > 0 ? 'bg-orange' : 'bg-green'}`}>{balance.balance > 0 ? '⏳' : '🎉'}</span></div>
           <span className={`kpi-value ${balance.balance > 0 ? 'highlight-orange' : 'highlight-green'}`}>{money(balance.balance)}</span>
         </div>
       </div>
 
       <div className="card mt">
         <div className="progress-labels">
-          <span>Progression du recouvrement</span>
+          <span>{t('parent.progress')}</span>
           <span className="progress-percent">{pct}%</span>
         </div>
         <div className="progress-bar-container">
@@ -56,12 +60,12 @@ export default function StudentDetail() {
         </div>
       </div>
 
-      <h2 style={{ margin: '26px 0 12px', fontSize: 18 }}>Échéances de pension</h2>
+      <h2 style={{ margin: '26px 0 12px', fontSize: 18 }}>{t('parent.detail.schedule')}</h2>
       <div className="card table-wrap">
-        <table>
+        <table className="responsive-table">
           <thead>
             <tr>
-              <th>Échéance</th><th>Date limite</th><th>Montant</th><th>Payé</th><th>Reste</th><th>Statut</th><th></th>
+              <th>{t('parent.fees')}</th><th>{t('parent.detail.deadline')}</th><th>{t('parent.detail.amount')}</th><th>{t('dash.paidLabel')}</th><th>{t('dash.remainderLabel')}</th><th>{t('parent.detail.status')}</th><th></th>
             </tr>
           </thead>
           <tbody>
@@ -70,18 +74,18 @@ export default function StudentDetail() {
               const late = f.due_date && new Date(f.due_date) < new Date() && reste > 0;
               return (
                 <tr key={f.id}>
-                  <td><b>{f.label}</b></td>
-                  <td>{f.due_date || '—'}</td>
-                  <td>{money(f.amount)}</td>
-                  <td style={{ color: 'var(--ok)' }}>{money(f.paid)}</td>
-                  <td style={{ color: reste > 0 ? 'var(--danger)' : 'var(--ok)' }}>{money(reste)}</td>
-                  <td>
-                    {reste <= 0 ? <span className="pill ok">Réglé</span> : late ? <span className="pill danger">En retard</span> : <span className="pill warn">À payer</span>}
+                  <td data-label={t('parent.fees')}><b>{f.label}</b></td>
+                  <td data-label={t('parent.detail.deadline')}>{f.due_date || '—'}</td>
+                  <td data-label={t('parent.detail.amount')}>{money(f.amount)}</td>
+                  <td data-label={t('dash.paidLabel')} style={{ color: 'var(--ok)' }}>{money(f.paid)}</td>
+                  <td data-label={t('dash.remainderLabel')} style={{ color: reste > 0 ? 'var(--danger)' : 'var(--ok)' }}>{money(reste)}</td>
+                  <td data-label={t('parent.detail.status')}>
+                    {reste <= 0 ? <span className="pill ok">{t('parent.detail.paidStatus')}</span> : late ? <span className="pill danger">{t('parent.detail.late')}</span> : <span className="pill warn">{t('parent.detail.toPay')}</span>}
                   </td>
                   <td>
                     {reste > 0 && (
-                      <Link className="btn primary" style={{ padding: '8px 14px' }} to={`/app/payer/${student.id}/${f.id}`}>
-                        Payer
+                      <Link className="btn primary sm" to={`/app/payer/${student.id}/${f.id}`}>
+                        {t('parent.detail.pay')}
                       </Link>
                     )}
                   </td>
@@ -93,7 +97,7 @@ export default function StudentDetail() {
       </div>
 
       <p className="mini mt">
-        Infos famille : père — <b>{student.father_name || '—'}</b> · mère — <b>{student.mother_name || '—'}</b> · contact : <b>{student.guardian_phone}</b>
+        {t('parent.detail.familyInfo')} : {t('parent.detail.father')} — <b>{student.father_name || '—'}</b> · {t('parent.detail.mother')} — <b>{student.mother_name || '—'}</b> · {t('parent.detail.contact')} — <b>{student.guardian_phone}</b>
       </p>
     </>
   );
