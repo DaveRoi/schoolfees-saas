@@ -5,12 +5,13 @@ import { useLang } from '../../i18n.jsx';
 export default function StaffPayments() {
   const { t } = useLang();
   const [payments, setPayments] = useState(null);
+  const [totalCount, setTotalCount] = useState(null);
   const [error, setError] = useState('');
   const [page, setPage] = useState(1);
   const PAGE_SIZE = 20;
 
   useEffect(() => {
-    const load = () => api('/payments').then((d) => setPayments(d.payments)).catch((e) => setError(e.message));
+    const load = () => api('/payments').then((d) => { setPayments(d.payments); setTotalCount(d.totalCount); }).catch((e) => setError(e.message));
     load();
     const timer = setInterval(load, 15000);
     return () => clearInterval(timer);
@@ -20,6 +21,7 @@ export default function StaffPayments() {
   if (!payments) return <div className="center" style={{ padding: 60 }}><span className="spinner" /></div>;
 
   const total = payments.filter((p) => p.status === 'success').reduce((s, p) => s + p.amount, 0);
+  const realTotal = totalCount ?? payments.length; // le backend plafonne à 500
   const totalPages = Math.max(1, Math.ceil(payments.length / PAGE_SIZE));
   const safePage = Math.min(page, totalPages);
   const pagePayments = payments.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
@@ -27,7 +29,7 @@ export default function StaffPayments() {
   return (
     <>
       <h1 className="page-title">{t('payments.staffTitle')}</h1>
-      <p className="page-sub">{payments.length} {t('payments.staffSub')} — {money(total)} {t('payments.collectedLabel')}</p>
+      <p className="page-sub">{realTotal} {t('payments.staffSub')} — {money(total)} {t('payments.collectedLabel')}</p>
 
       <div className="card table-wrap">
         <table className="responsive-table">
@@ -62,7 +64,7 @@ export default function StaffPayments() {
       </div>
       {totalPages > 1 && (
         <div className="flex between wrap" style={{ marginTop: 14, alignItems: 'center' }}>
-          <span className="mini">{pagePayments.length} {t('students.showing')} {payments.length}</span>
+          <span className="mini">{pagePayments.length} {t('students.showing')} {realTotal}{totalCount > 500 ? ' (500+)' : ''}</span>
           <div className="flex" style={{ gap: '.4rem' }}>
             <button className="btn ghost sm" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}>{t('students.prev')}</button>
             <span className="pill info">{t('students.page')} {safePage} / {totalPages}</span>

@@ -65,7 +65,7 @@ export default function StaffStudents() {
     const reader = new FileReader();
     reader.onload = async () => {
       const rows = parseCSV(String(reader.result));
-      if (!rows.length) return setError('CSV vide ou en-têtes invalides.');
+      if (!rows.length) return setError(t('import.badCsv'));
       try {
         const d = await api('/students/import', { method: 'POST', body: { rows } });
         setImportResult(d);
@@ -124,7 +124,7 @@ export default function StaffStudents() {
         <div className="flex wrap">
           {canImport && (
             <>
-              <button className="btn ghost" onClick={() => { setShowImport(!showImport); setShowForm(false); }}>{t('import.title')}</button>
+              <button className="btn ghost" onClick={() => { setShowImport(!showImport); setShowForm(false); }}>{t('import.btn')}</button>
               <button className="btn primary" onClick={() => { setShowForm(!showForm); setShowImport(false); }}>{t('students.add')}</button>
             </>
           )}
@@ -157,9 +157,14 @@ export default function StaffStudents() {
                   <summary className="mini" style={{ cursor: 'pointer' }}>{t('import.errorsDetail')} ({importResult.errors.length})</summary>
                   <div style={{ maxHeight: 200, overflowY: 'auto', marginTop: 6 }}>
                     {importResult.errors.map((e, i) => (
-                      <div key={i} className="mini" style={{ color: 'var(--danger)' }}>Ligne {e.line} : {e.error}</div>
+                      <div key={i} className="mini" style={{ color: 'var(--danger)' }}>{t('import.line')} {e.line} : {e.error}</div>
                     ))}
                   </div>
+                  {importResult.help?.availableClasses && (
+                    <div className="mini" style={{ marginTop: 6 }}>
+                      {t('import.availableClasses')} : {importResult.help.availableClasses.join(' · ')}
+                    </div>
+                  )}
                 </details>
               )}
             </div>
@@ -252,8 +257,8 @@ export default function StaffStudents() {
             </div>
             <p className="mini" style={{ marginBottom: 12 }}>{detail.student.class_name} · {detail.student.academic_year} · {detail.student.guardian_phone}</p>
 
-            <h4 style={{ fontSize: 14, marginBottom: 8 }}>👤 Parents rattachés</h4>
-            {detail.parents.length === 0 && <p className="mini" style={{ marginBottom: 8 }}>—</p>}
+            <h4 style={{ fontSize: 14, marginBottom: 8 }}>{t('students.linkedParents')}</h4>
+            {detail.parents.length === 0 && <p className="mini" style={{ marginBottom: 8 }}>{t('students.noParents')}</p>}
             {detail.parents.map((p) => (
               <div key={p.id} className="flex between" style={{ padding: '.4rem 0', borderBottom: '1px solid var(--border-color)' }}>
                 <span><b>{p.full_name}</b> <span className="mini">({p.relation})</span></span>
@@ -263,7 +268,7 @@ export default function StaffStudents() {
 
             {canEdit && (
               <div className="field mt">
-                <label>➕ Rattacher un parent</label>
+                <label>{t('students.linkParent')}</label>
                 <select onChange={(e) => { if (e.target.value) linkParent(detail.student.id, Number(e.target.value)); }} defaultValue="">
                   <option value="">— {t('students.choose')} —</option>
                   {detail.potentialParents

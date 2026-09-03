@@ -364,6 +364,13 @@ const dict = {
   'students.next': { fr: 'Suivant →', en: 'Next →' },
   'students.showAll': { fr: '👁 Tout afficher', en: '👁 Show all' },
   'students.showLess': { fr: 'Réduire', en: 'Show less' },
+  'import.btn': { fr: '📥 Importer CSV', en: '📥 Import CSV' },
+  'import.badCsv': { fr: 'CSV vide ou en-têtes invalides.', en: 'Empty CSV or invalid headers.' },
+  'import.line': { fr: 'Ligne', en: 'Line' },
+  'import.availableClasses': { fr: 'Classes disponibles', en: 'Available classes' },
+  'students.linkedParents': { fr: '👤 Parents rattachés', en: '👤 Linked parents' },
+  'students.linkParent': { fr: '➕ Rattacher un parent', en: '➕ Link a parent' },
+  'students.noParents': { fr: 'Aucun parent rattaché pour le moment.', en: 'No parent linked yet.' },
 
   // --- Admin : Classes & frais ---
   'admin.classes.title': { fr: 'Classes & frais', en: 'Classes & fees' },

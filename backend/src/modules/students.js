@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { prepare as db } from '../db/database.js';
+import { prepare as db, transaction } from '../db/database.js';
 import { requireAuth, requireRole, loadOwnedStudents, canAccessStudent } from '../middleware/auth.js';
 import { validate } from '../utils/validate.js';
 import { logAudit } from '../utils/audit.js';
@@ -70,39 +70,53 @@ router.post('/import', requireRole('coordinator', 'admin'), (req, res) => {
   let skipped = 0;
   const errors = [];
 
-  rows.forEach((r, i) => {
-    const line = i + 2; // +2 : ligne 1 = en-têtes CSV
-    const first_name = String(r.first_name || '').trim();
-    const last_name = String(r.last_name || '').trim();
-    const className = String(r.class_name || '').trim();
-    const father_name = String(r.father_name || '').trim();
-    const mother_name = String(r.mother_name || '').trim();
-    const guardian_phone = String(r.guardian_phone || '').trim();
+  const result = transaction(() => {
+    rows.forEach((r, i) => {
+      const line = i + 2; // +2 : ligne 1 = en-têtes CSV
+      const first_name = String(r.first_name || '').trim();
+      const last_name = String(r.last_name || '').trim();
+      const className = String(r.class_name || '').trim();
+      const father_name = String(r.father_name || '').trim();
+      const mother_name = String(r.mother_name || '').trim();
+      const guardian_phone = String(r.guardian_phone || '').trim();
+      const birth_date = String(r.birth_date || '').trim();
 
-    if (!first_name || !last_name) return errors.push({ line, error: 'Prénom et nom requis.' });
-    const classId = classByName.get(className.toLowerCase());
-    if (!classId) return errors.push({ line, error: `Classe inconnue : "${className}".` });
-    if (!/^\+?6\d{8}$/.test(guardian_phone)) return errors.push({ line, error: `Téléphone invalide : "${guardian_phone}".` });
+      if (!first_name || !last_name) return errors.push({ line, error: 'Prénom et nom requis.' });
+      const classId = classByName.get(className.toLowerCase());
+      if (!classId) return errors.push({ line, error: `Classe inconnue : "${className}".` });
+      if (!/^\+?6\d{8}$/.test(guardian_phone)) return errors.push({ line, error: `Téléphone invalide : "${guardian_phone}".` });
+      if (birth_date && !/^\d{4}-\d{2}-\d{2}$/.test(birth_date)) {
+        return errors.push({ line, error: `Date de naissance invalide : "${birth_date}" (format attendu AAAA-MM-JJ).` });
+      }
 
-    // Anti-doublon : même prénom+nom+classe
-    const dup = db(`SELECT id FROM students WHERE school_id = ? AND first_name = ? AND last_name = ? AND class_id = ?`)
-      .get(req.user.school_id, first_name, last_name, classId);
-    if (dup) { skipped++; return; }
+      // Anti-doublon : même prénom+nom+classe
+      const dup = db(`SELECT id FROM students WHERE school_id = ? AND first_name = ? AND last_name = ? AND class_id = ?`)
+        .get(req.user.school_id, first_name, last_name, classId);
+      if (dup) { skipped++; return; }
 
-    db(
-      `INSERT INTO students (school_id, first_name, last_name, birth_date, gender, class_id, father_name, mother_name, guardian_phone)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
-    ).run(
-      req.user.school_id, first_name, last_name,
-      r.birth_date || null,
-      (r.gender === 'M' || r.gender === 'F') ? r.gender : null,
-      classId, father_name || null, mother_name || null, guardian_phone
-    );
-    created++;
+      db(
+        `INSERT INTO students (school_id, first_name, last_name, birth_date, gender, class_id, father_name, mother_name, guardian_phone)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+      ).run(
+        req.user.school_id, first_name, last_name,
+        birth_date || null,
+        (r.gender === 'M' || r.gender === 'F') ? r.gender : null,
+        classId, father_name || null, mother_name || null, guardian_phone
+      );
+      created++;
+    });
   });
 
+  if (!result) console.error('[import] transaction terminée (erreurs acceptées en partial).');
+
+  // Aide : si TOUT a échoué par classe inconnue, lister les classes disponibles
+  const classErrors = errors.filter((e) => e.error.includes('Classe inconnue'));
+  const help = classErrors.length === errors.length && errors.length > 0
+    ? { availableClasses: classes.map((c) => c.name) }
+    : undefined;
+
   logAudit({ schoolId: req.user.school_id, userId: req.user.id, userName: req.user.full_name, action: 'students.bulk_imported', details: { created, skipped, errors: errors.length }, ip: req.ip });
-  res.status(201).json({ created, skipped, errors });
+  res.status(201).json({ created, skipped, errors, help });
 });
 
 // --- Modèle CSV (téléchargeable) ---
@@ -238,7 +252,10 @@ router.post('/:id/link-parent', requireRole('coordinator', 'admin', 'director'),
 router.post('/:id/unlink-parent/:parentId', requireRole('coordinator', 'admin', 'director'), (req, res) => {
   const studentId = Number(req.params.id);
   const parentId = Number(req.params.parentId);
-  db(`DELETE FROM parent_students WHERE student_id = ? AND parent_id = ?`).run(studentId, parentId);
+  const student = db(`SELECT id FROM students WHERE id = ? AND school_id = ?`).get(studentId, req.user.school_id);
+  if (!student) return res.status(404).json({ error: 'Élève introuvable.' });
+  const r = db(`DELETE FROM parent_students WHERE student_id = ? AND parent_id = ?`).run(studentId, parentId);
+  if (r.changes === 0) return res.status(404).json({ error: 'Ce parent n\'est pas rattaché à cet élève.' });
   logAudit({ schoolId: req.user.school_id, userId: req.user.id, userName: req.user.full_name, action: 'student.unlinked_parent', entityType: 'student', entityId: studentId, details: { parentId }, ip: req.ip });
   res.json({ message: 'Parent détaché.' });
 });

@@ -37,7 +37,8 @@ router.get('/', (req, res) => {
        ORDER BY p.created_at DESC LIMIT 500`
     )
     .all(req.user.school_id);
-  res.json({ payments });
+  const totalCount = db(`SELECT COUNT(*) AS c FROM payments WHERE school_id = ?`).get(req.user.school_id).c;
+  res.json({ payments, totalCount });
 });
 
 // --- Détail d'un paiement (isolation parent appliquée) ---
