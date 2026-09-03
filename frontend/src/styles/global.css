@@ -171,6 +171,10 @@ input, select, textarea { font-family: inherit; }
 .nav-btn.active { background: var(--primary); color: #fff; box-shadow: 0 4px 14px -4px rgba(79, 70, 229, .5); }
 
 .header-actions { display: flex; align-items: center; gap: .6rem; }
+.logout-btn { white-space: nowrap; }
+@media (max-width: 768px) {
+  .logout-btn { display: none; } /* présent dans le menu burger */
+}
 .theme-toggle {
   background: var(--bg-subtle); border: 1px solid var(--border-color);
   width: 38px; height: 38px; border-radius: 50%;

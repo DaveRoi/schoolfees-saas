@@ -56,6 +56,68 @@ router.get('/', (req, res) => {
   res.json({ students });
 });
 
+// --- IMPORT EN MASSE (CSV) : des centaines d'élèves en une requête ---
+router.post('/import', requireRole('coordinator', 'admin'), (req, res) => {
+  const { rows } = req.body;
+  if (!Array.isArray(rows) || !rows.length) return res.status(400).json({ error: 'Aucune ligne à importer.' });
+  if (rows.length > 2000) return res.status(400).json({ error: 'Maximum 2000 élèves par import.' });
+
+  // Résolution des classes par NOM (plus simple pour la coordinatrice)
+  const classes = db(`SELECT * FROM classes WHERE school_id = ?`).all(req.user.school_id);
+  const classByName = new Map(classes.map((c) => [c.name.toLowerCase(), c.id]));
+
+  let created = 0;
+  let skipped = 0;
+  const errors = [];
+
+  rows.forEach((r, i) => {
+    const line = i + 2; // +2 : ligne 1 = en-têtes CSV
+    const first_name = String(r.first_name || '').trim();
+    const last_name = String(r.last_name || '').trim();
+    const className = String(r.class_name || '').trim();
+    const father_name = String(r.father_name || '').trim();
+    const mother_name = String(r.mother_name || '').trim();
+    const guardian_phone = String(r.guardian_phone || '').trim();
+
+    if (!first_name || !last_name) return errors.push({ line, error: 'Prénom et nom requis.' });
+    const classId = classByName.get(className.toLowerCase());
+    if (!classId) return errors.push({ line, error: `Classe inconnue : "${className}".` });
+    if (!/^\+?6\d{8}$/.test(guardian_phone)) return errors.push({ line, error: `Téléphone invalide : "${guardian_phone}".` });
+
+    // Anti-doublon : même prénom+nom+classe
+    const dup = db(`SELECT id FROM students WHERE school_id = ? AND first_name = ? AND last_name = ? AND class_id = ?`)
+      .get(req.user.school_id, first_name, last_name, classId);
+    if (dup) { skipped++; return; }
+
+    db(
+      `INSERT INTO students (school_id, first_name, last_name, birth_date, gender, class_id, father_name, mother_name, guardian_phone)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).run(
+      req.user.school_id, first_name, last_name,
+      r.birth_date || null,
+      (r.gender === 'M' || r.gender === 'F') ? r.gender : null,
+      classId, father_name || null, mother_name || null, guardian_phone
+    );
+    created++;
+  });
+
+  logAudit({ schoolId: req.user.school_id, userId: req.user.id, userName: req.user.full_name, action: 'students.bulk_imported', details: { created, skipped, errors: errors.length }, ip: req.ip });
+  res.status(201).json({ created, skipped, errors });
+});
+
+// --- Modèle CSV (téléchargeable) ---
+router.get('/import/template.csv', requireRole('coordinator', 'admin'), (req, res) => {
+  const csv = [
+    'first_name;last_name;birth_date;gender;class_name;father_name;mother_name;guardian_phone',
+    'Éric;Atangana;2012-03-15;M;6ème A;Jean Atangana;Rosalie Ngo;677100001',
+    'Mireille;Atangana;2010-08-22;F;5ème B;Jean Atangana;Rosalie Ngo;677100001',
+  ].join('\r\n');
+  res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+  res.setHeader('Content-Disposition', 'attachment; filename="modele-import-eleves.csv"');
+  res.send('\uFEFF' + csv);
+});
+
+
 // --- Détail d'un élève + situation financière ---
 router.get('/:id', (req, res) => {
   const id = Number(req.params.id);
@@ -116,22 +178,6 @@ router.post('/', requireRole('coordinator', 'admin'), (req, res) => {
   res.status(201).json({ message: 'Élève créé.', studentId: info.lastInsertRowid });
 });
 
-// --- Rattachement d'un parent à un élève (multi-tuteurs OK) ---
-router.post('/:id/link-parent', requireRole('coordinator', 'admin'), (req, res) => {
-  const studentId = Number(req.params.id);
-  const parentId = Number(req.body.parent_id);
-  const student = db(`SELECT id FROM students WHERE id = ? AND school_id = ?`).get(studentId, req.user.school_id);
-  const parent = db(`SELECT id, role FROM users WHERE id = ? AND school_id = ?`).get(parentId, req.user.school_id);
-  if (!student || !parent || parent.role !== 'parent') return res.status(404).json({ error: 'Élève ou parent introuvable.' });
-
-  const exists = db(`SELECT id FROM parent_students WHERE parent_id = ? AND student_id = ?`).get(parentId, studentId);
-  if (exists) return res.status(409).json({ error: 'Ce parent est déjà rattaché à cet élève.' });
-
-  db(`INSERT INTO parent_students (parent_id, student_id, relation) VALUES (?, ?, ?)`).run(parentId, studentId, req.body.relation || 'tuteur');
-  logAudit({ schoolId: req.user.school_id, userId: req.user.id, userName: req.user.full_name, action: 'student.linked_parent', entityType: 'student', entityId: studentId, details: { parentId }, ip: req.ip });
-  res.status(201).json({ message: 'Parent rattaché à l\'élève.' });
-});
-
 // --- Mise à jour d'un élève (changement de classe inclus) ---
 router.patch('/:id', requireRole('coordinator', 'admin'), (req, res) => {
   const id = Number(req.params.id);
@@ -149,6 +195,52 @@ router.patch('/:id', requireRole('coordinator', 'admin'), (req, res) => {
   db(`UPDATE students SET ${setSql}, updated_at = datetime('now') WHERE id = ?`).run(...Object.values(updates), id);
   logAudit({ schoolId: req.user.school_id, userId: req.user.id, userName: req.user.full_name, action: 'student.updated', entityType: 'student', entityId: id, details: updates, ip: req.ip });
   res.json({ message: 'Élève mis à jour.' });
+});
+
+// --- Fiche complète d'un élève pour le staff (parents + échéances + paiements) ---
+router.get('/:id/full', requireRole('coordinator', 'admin', 'director'), (req, res) => {
+  const id = Number(req.params.id);
+  const student = db(
+    `SELECT s.*, c.name AS class_name, y.label AS academic_year FROM students s
+     JOIN classes c ON c.id = s.class_id JOIN academic_years y ON y.id = c.academic_year_id
+     WHERE s.id = ? AND s.school_id = ?`
+  ).get(id, req.user.school_id);
+  if (!student) return res.status(404).json({ error: 'Élève introuvable.' });
+
+  const parents = db(
+    `SELECT u.id, u.full_name, u.phone, u.email, ps.relation FROM parent_students ps
+     JOIN users u ON u.id = ps.parent_id WHERE ps.student_id = ?`
+  ).all(id);
+  const potentialParents = db(
+    `SELECT id, full_name, phone, email FROM users WHERE school_id = ? AND role = 'parent' ORDER BY full_name`
+  ).all(req.user.school_id);
+
+  res.json({ student, parents, potentialParents, balance: studentBalance(id) });
+});
+
+// --- Rattacher un parent (staff : coordinatrice/admin/directrice) ---
+router.post('/:id/link-parent', requireRole('coordinator', 'admin', 'director'), (req, res) => {
+  const studentId = Number(req.params.id);
+  const parentId = Number(req.body.parent_id);
+  const student = db(`SELECT id FROM students WHERE id = ? AND school_id = ?`).get(studentId, req.user.school_id);
+  const parent = db(`SELECT id, role FROM users WHERE id = ? AND school_id = ?`).get(parentId, req.user.school_id);
+  if (!student || !parent || parent.role !== 'parent') return res.status(404).json({ error: 'Élève ou parent introuvable.' });
+
+  const exists = db(`SELECT id FROM parent_students WHERE parent_id = ? AND student_id = ?`).get(parentId, studentId);
+  if (exists) return res.status(409).json({ error: 'Ce parent est déjà rattaché à cet élève.' });
+
+  db(`INSERT INTO parent_students (parent_id, student_id, relation) VALUES (?, ?, ?)`).run(parentId, studentId, req.body.relation || 'tuteur');
+  logAudit({ schoolId: req.user.school_id, userId: req.user.id, userName: req.user.full_name, action: 'student.linked_parent', entityType: 'student', entityId: studentId, details: { parentId }, ip: req.ip });
+  res.status(201).json({ message: 'Parent rattaché à l\'élève.' });
+});
+
+// --- Délier un parent d'un élève ---
+router.post('/:id/unlink-parent/:parentId', requireRole('coordinator', 'admin', 'director'), (req, res) => {
+  const studentId = Number(req.params.id);
+  const parentId = Number(req.params.parentId);
+  db(`DELETE FROM parent_students WHERE student_id = ? AND parent_id = ?`).run(studentId, parentId);
+  logAudit({ schoolId: req.user.school_id, userId: req.user.id, userName: req.user.full_name, action: 'student.unlinked_parent', entityType: 'student', entityId: studentId, details: { parentId }, ip: req.ip });
+  res.json({ message: 'Parent détaché.' });
 });
 
 export default router;

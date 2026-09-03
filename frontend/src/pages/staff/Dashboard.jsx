@@ -8,6 +8,12 @@ export default function StaffDashboard() {
   const { t } = useLang();
   const [dash, setDash] = useState(null);
   const [error, setError] = useState('');
+  const [showAllRecent, setShowAllRecent] = useState(false);
+  const [showAllUnpaid, setShowAllUnpaid] = useState(false);
+
+  const MOBILE_CUTOFF = 5; // compact par défaut : 5 lignes
+  const recentList = showAllRecent ? dash?.recent : (dash?.recent || []).slice(0, MOBILE_CUTOFF);
+  const unpaidList = showAllUnpaid ? dash?.unpaidStudents : (dash?.unpaidStudents || []).slice(0, MOBILE_CUTOFF);
 
   useEffect(() => {
     const load = () => api('/reports/dashboard').then(setDash).catch((e) => setError(e.message));
@@ -89,12 +95,19 @@ export default function StaffDashboard() {
 
       <div className="grid cols-2 mt">
         <div className="card">
-          <h3 style={{ marginBottom: 10, fontSize: 16 }}>{t('dash.recent')}</h3>
+          <div className="flex between" style={{ marginBottom: 10 }}>
+            <h3 style={{ fontSize: 16 }}>{t('dash.recent')}</h3>
+            {dash.recent.length > MOBILE_CUTOFF && (
+              <button className="btn ghost sm" onClick={() => setShowAllRecent(!showAllRecent)}>
+                {showAllRecent ? t('students.showLess') : `${t('students.showAll')} (${dash.recent.length})`}
+              </button>
+            )}
+          </div>
           <div className="table-wrap">
             <table className="responsive-table">
               <thead><tr><th>{t('payments.when')}</th><th>{t('payments.student')}</th><th>{t('dash.parent')}</th><th>{t('parent.detail.amount')}</th></tr></thead>
               <tbody>
-                {dash.recent.map((r) => (
+                {recentList.map((r) => (
                   <tr key={r.id}>
                     <td data-label={t('payments.when')}><span className="mini">{dt(r.paid_at)}</span></td>
                     <td data-label={t('payments.student')}><b>{r.first_name} {r.last_name}</b><div className="mini">{r.class_name}</div></td>
@@ -107,12 +120,19 @@ export default function StaffDashboard() {
           </div>
         </div>
         <div className="card">
-          <h3 style={{ marginBottom: 10, fontSize: 16 }}>{t('dash.unpaid')}</h3>
+          <div className="flex between" style={{ marginBottom: 10 }}>
+            <h3 style={{ fontSize: 16 }}>{t('dash.unpaid')}</h3>
+            {dash.unpaidStudents.length > MOBILE_CUTOFF && (
+              <button className="btn ghost sm" onClick={() => setShowAllUnpaid(!showAllUnpaid)}>
+                {showAllUnpaid ? t('students.showLess') : `${t('students.showAll')} (${dash.unpaidStudents.length})`}
+              </button>
+            )}
+          </div>
           <div className="table-wrap">
             <table className="responsive-table">
               <thead><tr><th>{t('payments.student')}</th><th>{t('payments.classCol')}</th><th>{t('dash.paidLabel')}</th><th>{t('dash.remainderLabel')}</th></tr></thead>
               <tbody>
-                {dash.unpaidStudents.slice(0, 10).map((u) => (
+                {unpaidList.map((u) => (
                   <tr key={u.id}>
                     <td data-label={t('payments.student')}><b>{u.first_name} {u.last_name}</b></td>
                     <td data-label={t('payments.classCol')}>{u.class_name}</td>

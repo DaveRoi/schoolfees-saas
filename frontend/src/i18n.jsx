@@ -349,6 +349,22 @@ const dict = {
   'admin.users.anonymized': { fr: 'Compte anonymisé (RGPD).', en: 'Account anonymized (GDPR).' },
   'register.badCode': { fr: '✗ Code école inconnu. Demandez-le à l\'établissement.', en: '✗ Unknown school code. Ask the school.' },
 
+  // --- Import en masse & pagination ---
+  'import.title': { fr: '📥 Importer des élèves en masse (CSV)', en: '📥 Bulk import students (CSV)' },
+  'import.sub': { fr: 'Importez toute une année scolaire en quelques secondes : 10, 200 ou 1000 élèves.', en: 'Import an entire school year in seconds: 10, 200 or 1,000 students.' },
+  'import.template': { fr: '⬇️ Télécharger le modèle CSV', en: '⬇️ Download CSV template' },
+  'import.choose': { fr: 'Choisir un fichier CSV…', en: 'Choose a CSV file…' },
+  'import.run': { fr: 'Importer', en: 'Import' },
+  'import.result': { fr: 'Résultat : {created} créé(s), {skipped} ignoré(s), {errors} erreur(s).', en: 'Result: {created} created, {skipped} skipped, {errors} errors.' },
+  'import.errorsDetail': { fr: 'Lignes en erreur', en: 'Error rows' },
+  'import.preview': { fr: 'Aperçu des 5 premières lignes', en: 'Preview of first 5 rows' },
+  'students.showing': { fr: 'affichés sur', en: 'shown of' },
+  'students.page': { fr: 'Page', en: 'Page' },
+  'students.prev': { fr: '← Précédent', en: '← Previous' },
+  'students.next': { fr: 'Suivant →', en: 'Next →' },
+  'students.showAll': { fr: '👁 Tout afficher', en: '👁 Show all' },
+  'students.showLess': { fr: 'Réduire', en: 'Show less' },
+
   // --- Admin : Classes & frais ---
   'admin.classes.title': { fr: 'Classes & frais', en: 'Classes & fees' },
   'admin.classes.sub': { fr: 'Gestion des classes, des frais annuels et des échéances de pension.', en: 'Manage classes, annual fees and fee installments.' },

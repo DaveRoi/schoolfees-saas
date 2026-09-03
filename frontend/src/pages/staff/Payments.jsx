@@ -6,6 +6,8 @@ export default function StaffPayments() {
   const { t } = useLang();
   const [payments, setPayments] = useState(null);
   const [error, setError] = useState('');
+  const [page, setPage] = useState(1);
+  const PAGE_SIZE = 20;
 
   useEffect(() => {
     const load = () => api('/payments').then((d) => setPayments(d.payments)).catch((e) => setError(e.message));
@@ -18,6 +20,9 @@ export default function StaffPayments() {
   if (!payments) return <div className="center" style={{ padding: 60 }}><span className="spinner" /></div>;
 
   const total = payments.filter((p) => p.status === 'success').reduce((s, p) => s + p.amount, 0);
+  const totalPages = Math.max(1, Math.ceil(payments.length / PAGE_SIZE));
+  const safePage = Math.min(page, totalPages);
+  const pagePayments = payments.slice((safePage - 1) * PAGE_SIZE, safePage * PAGE_SIZE);
 
   return (
     <>
@@ -30,7 +35,7 @@ export default function StaffPayments() {
             <tr><th>{t('payments.when')}</th><th>{t('payments.student')}</th><th>{t('payments.classCol')}</th><th>{t('dash.parent')}</th><th>{t('payments.fee')}</th><th>{t('parent.detail.amount')}</th><th>{t('payments.method')}</th><th>{t('parent.detail.status')}</th><th>{t('payments.receipt')}</th></tr>
           </thead>
           <tbody>
-            {payments.map((p) => (
+            {pagePayments.map((p) => (
               <tr key={p.id}>
                 <td data-label={t('payments.when')}><span className="mini">{dt(p.paid_at || p.created_at)}</span></td>
                 <td data-label={t('payments.student')}><b>{p.first_name} {p.last_name}</b></td>
@@ -55,6 +60,16 @@ export default function StaffPayments() {
           </tbody>
         </table>
       </div>
+      {totalPages > 1 && (
+        <div className="flex between wrap" style={{ marginTop: 14, alignItems: 'center' }}>
+          <span className="mini">{pagePayments.length} {t('students.showing')} {payments.length}</span>
+          <div className="flex" style={{ gap: '.4rem' }}>
+            <button className="btn ghost sm" disabled={safePage <= 1} onClick={() => setPage(safePage - 1)}>{t('students.prev')}</button>
+            <span className="pill info">{t('students.page')} {safePage} / {totalPages}</span>
+            <button className="btn ghost sm" disabled={safePage >= totalPages} onClick={() => setPage(safePage + 1)}>{t('students.next')}</button>
+          </div>
+        </div>
+      )}
     </>
   );
 }

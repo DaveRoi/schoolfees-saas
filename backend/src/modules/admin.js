@@ -7,6 +7,15 @@ import { logAudit } from '../utils/audit.js';
 import { getYears } from './academicYears.js';
 
 const router = Router();
+// Route de lecture ouverte au staff uniquement (formulaires élèves/échéances)
+router.get('/classes', requireAuth, requireRole('admin', 'coordinator', 'director'), (req, res) => {
+  const classes = db(
+    `SELECT c.*, (SELECT COUNT(*) FROM students s WHERE s.class_id = c.id AND s.status='active') AS student_count
+     FROM classes c WHERE c.school_id = ? ORDER BY c.name`
+  ).all(req.user.school_id);
+  res.json({ classes });
+});
+
 router.use(requireAuth, requireRole('admin'));
 
 // --- Infos école ---
@@ -26,15 +35,7 @@ router.patch('/school', (req, res) => {
   res.json({ message: 'Établissement mis à jour.' });
 });
 
-// --- Classes ---
-router.get('/classes', (req, res) => {
-  const classes = db(
-    `SELECT c.*, (SELECT COUNT(*) FROM students s WHERE s.class_id = c.id AND s.status='active') AS student_count
-     FROM classes c WHERE c.school_id = ? ORDER BY c.name`
-  ).all(req.user.school_id);
-  res.json({ classes });
-});
-
+// --- Classes (création/modification : admin uniquement) ---
 router.post('/classes', (req, res) => {
   const { name, level, annual_fee, next_class_id, is_terminal, academic_year_id } = req.body;
   if (!name || !level || !annual_fee) return res.status(400).json({ error: 'Nom, niveau et frais annuels requis.' });

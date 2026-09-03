@@ -67,6 +67,7 @@ export default function Layout() {
               <b>{lang === 'fr' ? 'FR' : 'EN'}</b>
             </button>
             <button className="theme-toggle" onClick={toggle} title="Light / Dark">{dark ? '☀️' : '🌙'}</button>
+            <button className="btn ghost sm logout-btn" onClick={doLogout}>{t('common.logout')}</button>
           </div>
         </div>
       </header>
