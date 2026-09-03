@@ -84,33 +84,50 @@ export default function PayFees() {
         <div className="card">
           <div className="flex between" style={{ marginBottom: 4 }}>
             <span className="mini">Reste à payer sur cette échéance</span>
-            <b style={{ color: 'var(--brand)', fontSize: 18 }}>{money(reste)}</b>
+            <b className="kpi-value highlight-orange" style={{ fontSize: '1.1rem' }}>{money(reste)}</b>
           </div>
           <div className="divider" />
 
           <div className="field">
             <label>Choisissez votre moyen de paiement</label>
-            <div className="pay-methods">
-              <div className={`pay-method ${method === 'mtn_momo' ? 'selected' : ''}`} onClick={() => setMethod('mtn_momo')}>
-                <span className="logo-dot mtn">MTN</span> MTN Mobile Money
-              </div>
-              <div className={`pay-method ${method === 'orange_money' ? 'selected' : ''}`} onClick={() => setMethod('orange_money')}>
-                <span className="logo-dot om">OM</span> Orange Money
-              </div>
+            <div className="grid cols-2" style={{ gap: '.7rem' }}>
+              <button
+                type="button"
+                className={`btn ${method === 'mtn_momo' ? 'momo' : 'ghost'}`}
+                style={{ flexDirection: 'column', gap: '.2rem', padding: '.9rem' }}
+                onClick={() => setMethod('mtn_momo')}
+              >
+                <span style={{ fontSize: '1.3rem' }}>🟡</span>
+                <b>MTN Mobile Money</b>
+                <span className="mini" style={{ opacity: .7 }}>USSD push direct</span>
+              </button>
+              <button
+                type="button"
+                className={`btn ${method === 'orange_money' ? 'om' : 'ghost'}`}
+                style={{ flexDirection: 'column', gap: '.2rem', padding: '.9rem' }}
+                onClick={() => setMethod('orange_money')}
+              >
+                <span style={{ fontSize: '1.3rem' }}>🟠</span>
+                <b>Orange Money</b>
+                <span className="mini" style={{ opacity: .7 }}>Webpay / #150*50#</span>
+              </button>
             </div>
           </div>
 
           <form onSubmit={start}>
             <div className="field">
               <label>Numéro {method === 'mtn_momo' ? 'MTN' : 'Orange'} à débiter</label>
-              <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="6xx xxx xxx" pattern="6[0-9]{8}" required />
+              <div className="input-with-icon">
+                <span className="input-icon">🇨🇲</span>
+                <input value={phone} onChange={(e) => setPhone(e.target.value)} placeholder="6xx xxx xxx" pattern="6[0-9]{8}" required />
+              </div>
             </div>
             <div className="field">
               <label>Montant à payer (FCFA) — total ou partiel</label>
               <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} min={100} max={reste} required />
-              <span className="mini">Astuce : vous pouvez payer en plusieurs fois.</span>
+              <span className="form-hint">Astuce : vous pouvez payer en plusieurs fois.</span>
             </div>
-            <button className="btn primary lg" disabled={busy}>
+            <button className="btn emerald lg" disabled={busy}>
               {busy ? <span className="spinner" style={{ borderColor: 'rgba(255,255,255,.4)', borderTopColor: '#fff' }} /> : `Payer ${money(amt)}`}
             </button>
           </form>

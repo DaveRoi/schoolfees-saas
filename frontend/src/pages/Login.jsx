@@ -24,11 +24,11 @@ export default function Login() {
     try {
       if (mfaStep) {
         await loginMfa(mfaStep.mfa_token, code);
-        nav('/');
+        nav('/app');
       } else {
         const d = await login(form.email, form.password);
         if (d.mfa_required) setMfaStep(d);
-        else nav('/');
+        else nav('/app');
       }
     } catch (err) {
       setError(err.message);
@@ -70,7 +70,7 @@ export default function Login() {
   return (
     <div className="auth-wrap">
       <div className="auth-card">
-        <div className="brand-line">SchoolFees SaaS</div>
+        <div className="brand-line"><span style={{ fontSize: '1.2rem' }}>🎓</span> EduPay Cameroun</div>
         <h1>{mfaStep ? 'Vérification en 2 étapes' : forgot ? 'Mot de passe oublié' : 'Content de vous revoir'}</h1>
         <p className="sub">
           {mfaStep

@@ -1,7 +1,9 @@
 import { Routes, Route, Navigate } from 'react-router-dom';
 import { useAuth } from './components/AuthContext.jsx';
+import Landing from './pages/Landing.jsx';
 import Login from './pages/Login.jsx';
 import Register from './pages/Register.jsx';
+import VerifyReceipt from './pages/VerifyReceipt.jsx';
 import Layout from './components/Layout.jsx';
 import ParentHome from './pages/parent/Home.jsx';
 import StudentDetail from './pages/parent/StudentDetail.jsx';
@@ -19,7 +21,7 @@ function Protected({ children, roles }) {
   const { user } = useAuth();
   if (user === undefined) return <div className="center" style={{ padding: 60 }}><span className="spinner" /></div>;
   if (!user) return <Navigate to="/login" replace />;
-  if (roles && !roles.includes(user.role)) return <Navigate to="/" replace />;
+    if (roles && !roles.includes(user.role)) return <Navigate to="/app" replace />;
   return children;
 }
 
@@ -30,9 +32,11 @@ export default function App() {
 
   return (
     <Routes>
+      <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/register" element={<Register />} />
-      <Route path="/" element={<Protected><Layout /></Protected>}>
+      <Route path="/verifier-recu" element={<VerifyReceipt />} />
+      <Route path="/app" element={<Protected><Layout /></Protected>}>
         <Route index element={<Navigate to={isParent ? '/mes-enfants' : '/dashboard'} replace />} />
         {isParent && (
           <>
@@ -57,7 +61,7 @@ export default function App() {
           </>
         )}
         <Route path="/profil" element={<Profile />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="*" element={<Navigate to="/app" replace />} />
       </Route>
     </Routes>
   );

@@ -37,7 +37,7 @@ export default function Register() {
       // Connexion automatique après inscription
       const d = await api('/auth/login', { method: 'POST', body: { email: form.email, password: form.password } });
       saveSession(d.accessToken, d.refreshToken);
-      nav('/');
+      nav('/app');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -48,7 +48,7 @@ export default function Register() {
   return (
     <div className="auth-wrap">
       <div className="auth-card">
-        <div className="brand-line">SchoolFees SaaS</div>
+        <div className="brand-line"><span style={{ fontSize: '1.2rem' }}>🎓</span> EduPay Cameroun</div>
         <h1>Créer un compte parent</h1>
         <p className="sub">Payez les pensions de vos enfants à distance, suivez vos paiements en temps réel.</p>
 

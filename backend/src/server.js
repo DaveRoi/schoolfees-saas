@@ -11,6 +11,7 @@ import studentsRouter from './modules/students.js';
 import paymentsRouter from './modules/payments.js';
 import reportsRouter from './modules/reports.js';
 import adminRouter from './modules/admin.js';
+import verifyRouter from './modules/verify.js';
 import { apiLimiter } from './middleware/rateLimit.js';
 import { runMaintenance, prepare as db } from './db/database.js';
 
@@ -42,6 +43,7 @@ app.use('/api/students', studentsRouter);
 app.use('/api/payments', paymentsRouter);
 app.use('/api/reports', reportsRouter);
 app.use('/api/admin', adminRouter);
+app.use('/api/public', verifyRouter);
 
 // --- Frontend buildé servi par le backend en production ---
 if (fs.existsSync(FRONTEND_DIST)) {
@@ -60,7 +62,7 @@ app.use((err, _req, res, _next) => {
 });
 
 const PORT = process.env.PORT || 4000;
-app.listen(PORT, () => console.log(`SchoolFees SaaS backend : http://localhost:${PORT}`));
+app.listen(PORT, () => console.log(`EduPay Cameroun backend : http://localhost:${PORT}`));
 
 // Maintenance planifiée : expiration des paiements pending, purge sessions
 setInterval(() => {

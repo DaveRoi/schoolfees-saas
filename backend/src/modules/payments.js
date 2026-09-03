@@ -208,7 +208,7 @@ router.get('/:id(\\d+)/receipt', (req, res) => {
     doc.fillColor('#000').text(`  ${v}`);
   });
   doc.moveDown(1);
-  doc.fontSize(9).fillColor('#888').text('Reçu généré électroniquement - SchoolFees SaaS', { align: 'center' });
+  doc.fontSize(9).fillColor('#888').text('Reçu généré électroniquement — EduPay Cameroun', { align: 'center' });
   doc.end();
 });
 

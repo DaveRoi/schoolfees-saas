@@ -115,7 +115,7 @@ router.post('/mfa/verify', authLimiter, (req, res) => {
 router.post('/mfa/setup', requireAuth, (req, res) => {
   const secret = authenticator.generateSecret();
   db(`UPDATE users SET mfa_secret = ?, updated_at = datetime('now') WHERE id = ?`).run(secret, req.user.id);
-  const otpauth = authenticator.keyuri(req.user.email, 'SchoolFees SaaS', secret);
+  const otpauth = authenticator.keyuri(req.user.email, 'EduPay Cameroun', secret);
   logAudit({ schoolId: req.user.school_id, userId: req.user.id, userName: req.user.full_name, action: 'user.mfa_setup_started', ip: req.ip });
   res.json({ secret, otpauth_url: otpauth, message: 'Scannez ce secret dans Google Authenticator, puis confirmez avec /mfa/confirm.' });
 });
@@ -263,7 +263,7 @@ function sendResetCode(user, token) {
   db(
     `INSERT INTO notifications (school_id, channel, recipient_phone, recipient_name, message, purpose, status)
      VALUES (?, 'sms', ?, ?, ?, 'password_reset', 'sent')`
-  ).run(user.school_id, user.phone, user.full_name, `Code de reinitialisation SchoolFees : ${token}. Valable 30 minutes. Ne le partagez jamais.`);
+  ).run(user.school_id, user.phone, user.full_name, `Code de reinitialisation EduPay : ${token}. Valable 30 minutes. Ne le partagez jamais.`);
   console.log(`[reset:simulate] Code de réinitialisation pour ${user.email} : ${token}`);
 }
 

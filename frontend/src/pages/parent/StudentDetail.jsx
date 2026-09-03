@@ -32,18 +32,27 @@ export default function StudentDetail() {
       </div>
 
       <div className="grid cols-3">
-        <div className="card stat brand">
-          <span className="label">Total attendu</span>
-          <span className="value">{money(balance.totalDue)}</span>
+        <div className="card kpi-card">
+          <div className="kpi-header"><span className="kpi-title">Total attendu</span><span className="kpi-icon-badge bg-blue">💰</span></div>
+          <span className="kpi-value">{money(balance.totalDue)}</span>
         </div>
-        <div className="card stat ok">
-          <span className="label">Déjà payé</span>
-          <span className="value">{money(balance.totalPaid)}</span>
+        <div className="card kpi-card">
+          <div className="kpi-header"><span className="kpi-title">Déjà payé</span><span className="kpi-icon-badge bg-green">✅</span></div>
+          <span className="kpi-value highlight-green">{money(balance.totalPaid)}</span>
         </div>
-        <div className={`card stat ${balance.balance > 0 ? 'warn' : 'ok'}`}>
-          <span className="label">Reste à payer</span>
-          <span className="value">{money(balance.balance)}</span>
-          <div className="progress mt"><div style={{ width: `${pct}%` }} /></div>
+        <div className="card kpi-card">
+          <div className="kpi-header"><span className="kpi-title">Reste à payer</span><span className={`kpi-icon-badge ${balance.balance > 0 ? 'bg-orange' : 'bg-green'}`}>{balance.balance > 0 ? '⏳' : '🎉'}</span></div>
+          <span className={`kpi-value ${balance.balance > 0 ? 'highlight-orange' : 'highlight-green'}`}>{money(balance.balance)}</span>
+        </div>
+      </div>
+
+      <div className="card mt">
+        <div className="progress-labels">
+          <span>Progression du recouvrement</span>
+          <span className="progress-percent">{pct}%</span>
+        </div>
+        <div className="progress-bar-container">
+          <div className={`progress-bar-fill ${pct < 100 ? (pct === 0 ? 'danger' : 'warning') : ''}`} style={{ width: `${pct}%` }} />
         </div>
       </div>
 
