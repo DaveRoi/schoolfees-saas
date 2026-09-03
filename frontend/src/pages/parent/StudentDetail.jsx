@@ -28,7 +28,7 @@ export default function StudentDetail() {
           <h1 className="page-title">{student.first_name} {student.last_name}</h1>
           <p className="page-sub">{student.class_name} — {student.gender === 'M' ? 'Garçon' : 'Fille'} — né(e) le {student.birth_date || '—'}</p>
         </div>
-        <Link to="/mes-enfants" className="btn ghost">← Mes enfants</Link>
+        <Link to="/app/mes-enfants" className="btn ghost">← Mes enfants</Link>
       </div>
 
       <div className="grid cols-3">
@@ -80,7 +80,7 @@ export default function StudentDetail() {
                   </td>
                   <td>
                     {reste > 0 && (
-                      <Link className="btn primary" style={{ padding: '8px 14px' }} to={`/payer/${student.id}/${f.id}`}>
+                      <Link className="btn primary" style={{ padding: '8px 14px' }} to={`/app/payer/${student.id}/${f.id}`}>
                         Payer
                       </Link>
                     )}

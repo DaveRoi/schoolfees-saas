@@ -110,7 +110,6 @@ export default function StaffDashboard() {
         <div className="card">
           <div className="flex between" style={{ marginBottom: 10 }}>
             <h3 style={{ fontSize: 16 }}>Impayés (relance)</h3>
-            <button className="btn ghost sm" onClick={() => window.open('/api/reports/export/unpaid.pdf', '_blank')} title="Export PDF via la page Rapports">📥 Export</button>
           </div>
           <div className="table-wrap">
             <table>

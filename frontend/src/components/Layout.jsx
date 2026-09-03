@@ -9,25 +9,25 @@ const ROLE_LABELS = {
   parent: 'Parent',
 };
 
-/** Menu selon le rôle connecté. */
+/** Menu selon le rôle connecté (préfixé /app). */
 function menuFor(role) {
   if (role === 'parent')
     return [
-      { to: '/mes-enfants', label: 'Mes enfants', icon: '👨‍👩‍👧' },
-      { to: '/mes-paiements', label: 'Mes paiements', icon: '🧾' },
-      { to: '/profil', label: 'Mon profil', icon: '⚙️' },
+      { to: '/app/mes-enfants', label: 'Mes enfants', icon: '👨‍👩‍👧' },
+      { to: '/app/mes-paiements', label: 'Mes paiements', icon: '🧾' },
+      { to: '/app/profil', label: 'Mon profil', icon: '⚙️' },
     ];
   const items = [
-    { to: '/dashboard', label: 'Tableau de bord', icon: '📊' },
-    { to: '/eleves', label: 'Élèves', icon: '🎓' },
-    { to: '/paiements', label: 'Paiements', icon: '💳' },
-    { to: '/rapports', label: 'Rapports', icon: '📁' },
+    { to: '/app/dashboard', label: 'Tableau de bord', icon: '📊' },
+    { to: '/app/eleves', label: 'Élèves', icon: '🎓' },
+    { to: '/app/paiements', label: 'Paiements', icon: '💳' },
+    { to: '/app/rapports', label: 'Rapports', icon: '📁' },
   ];
   if (role === 'admin') {
-    items.push({ to: '/admin/utilisateurs', label: 'Utilisateurs', icon: '👥' });
-    items.push({ to: '/admin/classes', label: 'Classes & frais', icon: '🏫' });
+    items.push({ to: '/app/admin/utilisateurs', label: 'Utilisateurs', icon: '👥' });
+    items.push({ to: '/app/admin/classes', label: 'Classes & frais', icon: '🏫' });
   }
-  items.push({ to: '/profil', label: 'Mon profil', icon: '⚙️' });
+  items.push({ to: '/app/profil', label: 'Mon profil', icon: '⚙️' });
   return items;
 }
 
@@ -53,7 +53,7 @@ export default function Layout() {
         <div className="header-container">
           <div className="flex" style={{ gap: '1rem', alignItems: 'center' }}>
             <button className="burger-btn" onClick={() => setMobileOpen(!mobileOpen)} aria-label="Menu">☰</button>
-            <Link to="/" className="brand-logo">
+            <Link to="/app" className="brand-logo">
               <div className="logo-badge-icon">🎓</div>
               <span className="logo-title">EduPay <span className="logo-badge-edu">Cameroun</span></span>
             </Link>

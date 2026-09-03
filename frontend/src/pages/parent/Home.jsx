@@ -148,7 +148,7 @@ export default function ParentHome() {
                         </div>
                       </div>
                       {!done && (
-                        <button className="btn emerald sm" style={{ marginTop: '.6rem' }} onClick={() => nav(`/payer/${current.id}/${f.id}`)}>
+                        <button className="btn emerald sm" style={{ marginTop: '.6rem' }} onClick={() => nav(`/app/payer/${current.id}/${f.id}`)}>
                           Payer cette tranche ➔
                         </button>
                       )}
@@ -160,7 +160,7 @@ export default function ParentHome() {
               <p className="mini">Chargement des échéances…</p>
             )}
             <p className="mini mt" style={{ marginTop: '1rem' }}>
-              <Link to={`/eleve/${current.id}`} style={{ color: 'var(--primary)', fontWeight: 700 }}>Voir la fiche complète →</Link>
+              <Link to={`/app/eleve/${current.id}`} style={{ color: 'var(--primary)', fontWeight: 700 }}>Voir la fiche complète →</Link>
             </p>
           </div>
         </div>

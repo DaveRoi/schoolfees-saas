@@ -37,30 +37,30 @@ export default function App() {
       <Route path="/register" element={<Register />} />
       <Route path="/verifier-recu" element={<VerifyReceipt />} />
       <Route path="/app" element={<Protected><Layout /></Protected>}>
-        <Route index element={<Navigate to={isParent ? '/mes-enfants' : '/dashboard'} replace />} />
+        <Route index element={<Navigate to={isParent ? '/app/mes-enfants' : '/app/dashboard'} replace />} />
         {isParent && (
           <>
-            <Route path="/mes-enfants" element={<ParentHome />} />
-            <Route path="/eleve/:id" element={<StudentDetail />} />
-            <Route path="/payer/:studentId/:feeItemId" element={<PayFees />} />
-            <Route path="/mes-paiements" element={<MyPayments />} />
+            <Route path="mes-enfants" element={<ParentHome />} />
+            <Route path="eleve/:id" element={<StudentDetail />} />
+            <Route path="payer/:studentId/:feeItemId" element={<PayFees />} />
+            <Route path="mes-paiements" element={<MyPayments />} />
           </>
         )}
         {isStaff && (
           <>
-            <Route path="/dashboard" element={<StaffDashboard />} />
-            <Route path="/eleves" element={<StaffStudents />} />
-            <Route path="/paiements" element={<StaffPayments />} />
-            <Route path="/rapports" element={<StaffReports />} />
+            <Route path="dashboard" element={<StaffDashboard />} />
+            <Route path="eleves" element={<StaffStudents />} />
+            <Route path="paiements" element={<StaffPayments />} />
+            <Route path="rapports" element={<StaffReports />} />
           </>
         )}
         {user?.role === 'admin' && (
           <>
-            <Route path="/admin/utilisateurs" element={<AdminUsers />} />
-            <Route path="/admin/classes" element={<AdminClasses />} />
+            <Route path="admin/utilisateurs" element={<AdminUsers />} />
+            <Route path="admin/classes" element={<AdminClasses />} />
           </>
         )}
-        <Route path="/profil" element={<Profile />} />
+        <Route path="profil" element={<Profile />} />
         <Route path="*" element={<Navigate to="/app" replace />} />
       </Route>
     </Routes>

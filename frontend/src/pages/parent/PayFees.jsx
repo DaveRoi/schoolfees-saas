@@ -156,7 +156,7 @@ export default function PayFees() {
             <button className="btn primary" onClick={() => openProtectedFile(`/payments/${payment.id}/receipt`)}>
               📄 Télécharger le reçu PDF
             </button>
-            <button className="btn ghost" onClick={() => nav(`/eleve/${studentId}`)}>Voir le solde mis à jour</button>
+            <button className="btn ghost" onClick={() => nav(`/app/eleve/${studentId}`)}>Voir le solde mis à jour</button>
           </div>
         </div>
       )}
@@ -168,7 +168,7 @@ export default function PayFees() {
           <p style={{ color: 'var(--muted)', marginBottom: 18 }}>{message}</p>
           <div className="flex center wrap" style={{ justifyContent: 'center' }}>
             <button className="btn primary" onClick={() => setStep('form')}>Réessayer</button>
-            <button className="btn ghost" onClick={() => nav(`/eleve/${studentId}`)}>Retour</button>
+            <button className="btn ghost" onClick={() => nav(`/app/eleve/${studentId}`)}>Retour</button>
           </div>
         </div>
       )}
